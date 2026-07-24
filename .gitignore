@@ -1,0 +1,23 @@
+# Secrets — never in git history (stakes gate, coding-standard/README.md §4)
+.env
+*.key
+*credentials*
+*secret*
+
+# Raw data — immutable, regenerable; exception: small text datasets may be tracked
+data/
+
+# Large generated outputs (>100MB has no place in git; small final figures/tables OK)
+results/checkpoints/
+results/**/*.ckpt
+results/**/*.pt
+results/**/*.h5
+
+# Python
+__pycache__/
+*.egg-info/
+.venv/
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
