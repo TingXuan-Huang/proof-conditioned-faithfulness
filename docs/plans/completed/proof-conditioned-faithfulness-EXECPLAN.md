@@ -1,3 +1,7 @@
+> **SUPERSEDED (2026-07-24).** This plan is retired (todo T009). The single
+> controlling plan is [../active/PLAN.md](../active/PLAN.md). This file is kept as
+> historical reference only — do not execute from it.
+
 # ExecPlan: Counterfactual Faithfulness in Proof-Conditioned Lean Autoformalization
 
 This is a living implementation plan. The coding agent must keep the Progress, Surprises & Discoveries, Decision Log, and Outcomes & Retrospective sections current while carrying out the work. Every entry added to those sections must include a date. The project is complete only when the observable acceptance criteria in this plan pass; creating files without running the checks is not completion.

@@ -1,3 +1,7 @@
+> **SUPERSEDED (2026-07-24).** This plan is retired (todo T009). The single
+> controlling plan is [../active/PLAN.md](../active/PLAN.md). This file is kept as
+> historical reference only — do not execute from it.
+
 # Human Plan: Proof-Conditioned Lean Faithfulness Study
 
 Last updated: 2026-07-22

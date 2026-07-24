@@ -1,0 +1,48 @@
+[project]
+name = "proof-faithfulness"
+version = "0.1.0"
+description = "Proof-conditioned Lean faithfulness study: does a proof-conditioned model follow the informal proof strategy it is given?"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.7",
+    "typer>=0.12",
+    "httpx>=0.27",
+    "pyyaml>=6.0",
+    "tenacity>=8.3",
+    "tqdm>=4.66",
+]
+
+# The `proof-faithfulness` console script is added in stage S1 (PLAN.md Part 2.3)
+# together with src/proof_faithfulness/cli.py — no entry point is declared until the
+# module exists, so `uv sync --frozen` works from this bare scaffold.
+
+[project.optional-dependencies]
+analysis = [
+    "pandas>=2.2",
+    "pyarrow>=16.0",
+    "numpy>=1.26",
+    "scipy>=1.13",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+    "ruff>=0.5",
+    "pyright>=1.1.370",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/proof_faithfulness"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.pyright]
+pythonVersion = "3.12"
+include = ["src", "tests"]

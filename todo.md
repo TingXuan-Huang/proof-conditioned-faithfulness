@@ -14,9 +14,29 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
 - [ ] T003 (P2) Pin Lean/Mathlib toolchain version before any Lean statement work
       (JOINT-CURATION-PLAN requires statements to elaborate in a pinned environment).
 - [ ] T004 (P3) Add GitHub remote and push once the repo is ready to leave this machine.
-- [ ] T005 (P3) Verify the specific NeurIPS 2026 workshop + deadline (human-owned;
-      HUMAN_PLAN §3).
+      Remote decided 2026-07-24: https://github.com/TingXuan-Huang/proof-conditioned-faithfulness.git (private).
+- [ ] T006 (P2) Freeze the five analysis decisions (primary estimand, sample pairing,
+      ambiguity coding, uncertainty method, agreement threshold) — full explanations and
+      examples in docs/design-docs/analysis-decisions-pending.md. Deferred by design:
+      decide after the pilot run, but **hard gate: frozen before core-run results are
+      inspected**.
+- [ ] T008 (P2) Server access details — scheduler CONFIRMED: SLURM (2026-07-24).
+      Still needed: partitions, GPU availability, storage quota + purge policy,
+      compute-node network policy, secret delivery method. Record answers in
+      docs/SERVER-HARNESS-RUNBOOK.md §1. Blocks Part 2 of PLAN.md.
+- [ ] T009 (P2) After the PLAN.md rework (Codex-review fixes) is complete: move the 4
+      old plans (EXECPLAN, HUMAN_PLAN, JOINT-CURATION-PLAN, task_plan) from
+      docs/plans/active/ to docs/plans/completed/ with SUPERSEDED banners, then git
+      commit everything (PLAN.md, candidates, analysis-decisions-pending.md).
+      Per user 2026-07-24: leave in place until the rework is done, just in case.
+- [ ] T007 (P2) Recruit a second qualified annotator (or explicitly preregister a
+      single-annotator + LLM-judge fallback). Blocks the annotation phase.
+      See analysis-decisions-pending.md §(f).
 
 ## Done
 
-(move completed items here with date)
+- [x] T005 (P3) 2026-07-24 — Venue verified: **MATH-AI @ NeurIPS 2026 (Atlanta)** is the
+      primary target — deadline Sept 25, 2026 AoE, notification Oct 19, 4 pages +
+      unlimited refs/appendix, non-archival (https://mathai-2026.github.io/cfp).
+      Fallback: VERICODEGEN (deadline Sept 10, Lean/autoformalization explicitly in
+      scope, https://vericodegen.github.io/) — fallback decision needed by ~Sept 5.

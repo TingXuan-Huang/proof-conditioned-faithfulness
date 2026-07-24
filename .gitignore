@@ -4,8 +4,10 @@
 *credentials*
 *secret*
 
-# Raw data — immutable, regenerable; exception: small text datasets may be tracked
-data/
+# Raw scraped/source data — immutable, regenerable, possibly license-restricted.
+# NOTE: data/benchmark/ and data/annotations/ are human-approved project artifacts and
+# ARE versioned — only raw/ is ignored.
+data/raw/
 
 # Large generated outputs (>100MB has no place in git; small final figures/tables OK)
 results/checkpoints/
@@ -21,3 +23,7 @@ __pycache__/
 
 # OS
 .DS_Store
+
+# Local agent session logs / run products
+.claude/logs/
+outputs/
