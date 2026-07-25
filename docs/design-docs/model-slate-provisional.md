@@ -76,6 +76,79 @@ rather than silently omitting.
   record id/revision/quantization/context/GPU/cost; then freeze into
   EXPERIMENT-SPEC.md §3.
 
+## S4 implementation contract (the coding agent writes code to THIS)
+
+Everything below is normative for S4. If reality forces a deviation, record it in
+PLAN.md's Decision Log — don't silently improvise.
+
+### 1. Model config file — one YAML per slate model, this exact shape
+
+    # configs/models/deepseek-prover-v2-7b.yaml
+    key: deepseek_prover_v2_7b       # slate key; appears in request IDs and manifests
+    category: prover                 # frontier_api | open_weight | prover | pipeline
+    provider: vllm                   # vllm | openai_compat_api | proofbridge | proofflow
+    model_id: deepseek-ai/DeepSeek-Prover-V2-7B
+    revision: null                   # FULL HF commit hash — frozen at 2.4, null until then
+    base_url: http://localhost:8000/v1   # API providers: the https endpoint
+    api_key_env: null                # secret NAME for API providers (e.g. FRONTIER_API_KEY)
+    chat_template: prover_deepseek_v1    # names a file in prompts/; hashed into request IDs
+    decoding:                        # documented model recipe WINS over global defaults;
+      temperature: 1.0               # a deviation from our defaults is recorded here + Decision Log
+      top_p: 0.95
+      max_tokens: 8192
+      seed_base: 20260724            # per-request seed = seed_base + sample_index
+    concurrency: 4                   # RUNBOOK §7 cap
+    pricing_usd_per_mtok: {input: 0.0, output: 0.0}   # 0 for local inference
+    pipeline_commit: null            # pipeline category only: pinned git commit of their repo
+
+### 2. GenerationResponse artifact — responses/<request_id>/response.json
+
+Required fields (S1 Pydantic model must match): `request_id`, `model_key`,
+`revision`, `raw` (the provider's verbatim response payload — never discarded),
+`text` (extracted completion), `finish_reason`, `usage` {input_tokens,
+output_tokens}, `usd_cost` (usage × pricing config; 0.0 local), `latency_s`,
+`started_at`, `completed_at`, `harness_git_commit`. Plus a sha256 sidecar per the
+S1 artifact rules. The extractor that turns `raw` into `text` follows S2's rules
+(may strip fences, may NOT repair).
+
+### 3. Prompt template contract
+
+`prompts/` holds versioned template files (`theorem_only_v1.txt`,
+`preservation_v1.txt`, `validity_only_v1.txt`, `repair_v1.txt`, plus per-prover
+chat templates). Template variables, double-brace style: `{{lean_statement}}`,
+`{{imports}}`, `{{informal_proof}}` (absent in theorem_only). The mapping
+condition → (system template, user template) lives in
+`configs/experiment/conditions.yaml`, not in code. `prompt_hash` and
+`chat_template_hash` in the request-ID formula are sha256 over the raw template
+file bytes — so editing a template automatically changes every downstream
+request ID (that is the point).
+
+### 4. vLLM server lifecycle — job script owns it, not the harness
+
+The SLURM job script: starts `vllm serve` in the background, polls
+`GET /health` (timeout ~10 min — model load is slow), then runs
+`proof-faithfulness run ...`, and kills the server via an EXIT trap (fires on
+success, failure, and preemption alike). The harness only ever talks to
+`base_url` and treats connection-refused as a retryable transport error.
+
+### 5. Batch transport (openai_compat_api providers only)
+
+Optional second transport for pilot/core full runs at ~50% cost: build the
+provider's batch-input JSONL with `custom_id = request_id`, submit, poll,
+fetch results, and write each result through the SAME GenerationResponse
+artifact writer as the sync path (identical on-disk outcome; results arrive
+unordered — key strictly by custom_id). Smoke slices always use the sync path.
+If the batch job partially fails, the resume logic already handles it: missing
+request_ids simply get re-sent.
+
+### 6. Pipeline adapters (ProofBridge / ProofFlow)
+
+Clone into `third_party/<name>/` (gitignored) at the commit pinned in
+`pipeline_commit`; run per their own README/entrypoints; the adapter's ONLY
+obligation is to emit the same GenerationResponse artifact as every other
+provider. Integration failures are recorded per PLAN 2.4, never silently
+dropped.
+
 ## Blockers for the freeze
 
 1. T008 GPU facts (count/VRAM/partitions) — gates category 2/3 sizing.
