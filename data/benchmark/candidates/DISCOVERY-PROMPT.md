@@ -77,6 +77,18 @@ equivalent restatements of them:**
 32. same digit multiset ⇒ 9 | difference
 33. every n is a sum of distinct powers of 2
 34. Nicomachus Σk³ = (Σk)²
+35. every n ≥ 8 is 3a + 5b (coins/stamps)
+36. division algorithm existence on ℕ
+37. strictly monotone f : ℕ→ℕ has n ≤ f(n)
+38. √2 + √3 irrational
+39. log₂ 3 irrational
+40. 8x³ − 6x − 1 has no rational root (trisection cubic)
+41. 2ⁿ ≤ C(2n,n)
+42. C(n,k) < n^k for k ≥ 2
+43. 2ⁿ < n! for n ≥ 4
+
+Also consult NOTES-library-collapse-catalog.md in this folder — it lists theorems
+already known to be killed by exact Mathlib lemmas; do not propose them.
 
 Also avoid: sum of first n integers = n(n+1)/2 (Gauss pairing vs induction is
 contamination-famous), sum of first n odd numbers = n², infinitude of primes, Binet's

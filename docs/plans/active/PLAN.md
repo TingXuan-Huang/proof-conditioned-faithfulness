@@ -77,6 +77,13 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
       001-029, all draft, awaiting human review. Discovery agents now report an
       Automation/library caveats field (three exact-Mathlib collapses caught at
       sourcing time this round).
+- [x] 2026-07-24: Opus discovery round 3 (6 agents: modular, digits/sums,
+      order/well-ordering, irrationality, discrete inequalities; 1 low-contamination
+      agent lost to a session usage limit) filed as 030-044. Claude-recommended
+      keepers: 031, 033, 036, 040, 041, 042; NOTES-library-collapse-catalog.md added
+      (Loogle-verified list of theorems dead to exact Mathlib lemmas + the
+      asymmetric-collapse and third-route-attractor taxonomies for the S5 rubric).
+      Pool complete at 001-044 pending human review; discovery paused.
 - [ ] YYYY-MM-DD: Human review of candidate pool; first 5 pilot pairs approved.
 - [ ] YYYY-MM-DD: Full curation metadata (signatures, steps, paraphrases) for pilot 5.
 - [ ] YYYY-MM-DD: GitHub remote created and pushed (T004; repo name/visibility pending).
