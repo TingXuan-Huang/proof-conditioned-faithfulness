@@ -225,7 +225,11 @@ They freeze after the pilot, before core results are inspected (T006). Second-an
 recruitment tracked as T007.
 
 ### 1.3 Model slate & API agreement — categories fixed, IDs deferred
-Four categories (Decision Log). Budget $500 ceiling, per-batch approval. Provider keys
+Four categories (Decision Log). How each category physically runs (vLLM
+OpenAI-compatible serving covers categories 1-3 with ONE adapter; pipelines get
+bespoke adapters; provisional model picks by GPU budget):
+[docs/design-docs/model-slate-provisional.md](../../design-docs/model-slate-provisional.md).
+Budget $500 ceiling, per-batch approval. Provider keys
 and GPU expectations recorded when server access is confirmed (T008). Secret NAMES may
 be listed in configs; secret VALUES never enter the repo, logs, or agent context
 (stakes gate, coding-standard/README.md §4).
