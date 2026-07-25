@@ -18,6 +18,18 @@ Everything here is written for a stateless agent arriving with only a fresh clon
     API budget:       $20 credit on the frontier provider (exact provider name to be
                       confirmed by the user; enough for pilot + cheap-provider core;
                       top-up decision deferred until post-pilot cost data)
+    reserve cluster:  Klone (UW Hyak) — user has access. Decision 2026-07-24: do NOT
+                      set up both clusters; Tillicum is the single canonical host
+                      (one environment in the freeze manifest). Escalate to Klone
+                      only if, at the 2.4 smoke test, projected core burn exceeds
+                      ~$150 of remaining Tillicum credits. Escalation order:
+                      (1) move CPU-only Lean checking to Klone (free CPU, biggest
+                      saver); (2) move local vLLM inference to Klone's preemptible
+                      checkpoint partition (safe: resume + deterministic request IDs
+                      lose only the in-flight sample). PAID API jobs never run on a
+                      preemptible partition. If Klone is activated, run 2.1 discovery
+                      there too and record a second facts block + which artifacts
+                      came from which cluster in every run manifest.
 
 If compute nodes have no outbound network, API generation jobs must run on a login/DTN
 node or via the cluster's designated proxy — discover this BEFORE any paid batch.
