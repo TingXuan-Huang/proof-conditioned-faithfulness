@@ -8,10 +8,16 @@ Everything here is written for a stateless agent arriving with only a fresh clon
 
 ## 1. Server facts (fill in at environment discovery, PLAN.md 2.1)
 
-    scheduler:        SLURM (confirmed)   partitions: TBD (sinfo)
-    GPUs:             TBD                 storage quota: TBD
-    network policy:   TBD (can compute nodes reach API providers? test from a job!)
+    cluster:          Tillicum (University of Washington HPC), SLURM (confirmed)
+    compute budget:   $250 in cluster credits (2026-07-24) — GPU jobs burn this;
+                      keep dev on CPU/login nodes + mock adapters; GPUs only for
+                      real batches, serve → run → shut down
+    partitions:       TBD (sinfo)         GPUs: TBD (types/VRAM — gates model sizes)
+    storage quota:    TBD                 network policy: TBD (test from a compute job!)
     proxy/module cmds: TBD                secret delivery: TBD (see §3)
+    API budget:       $20 credit on the frontier provider (exact provider name to be
+                      confirmed by the user; enough for pilot + cheap-provider core;
+                      top-up decision deferred until post-pilot cost data)
 
 If compute nodes have no outbound network, API generation jobs must run on a login/DTN
 node or via the cluster's designated proxy — discover this BEFORE any paid batch.

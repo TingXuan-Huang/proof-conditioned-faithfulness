@@ -18,10 +18,12 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       examples in docs/design-docs/analysis-decisions-pending.md. Deferred by design:
       decide after the pilot run, but **hard gate: frozen before core-run results are
       inspected**.
-- [ ] T008 (P2) Server access details — scheduler CONFIRMED: SLURM (2026-07-24).
-      Still needed: partitions, GPU availability, storage quota + purge policy,
-      compute-node network policy, secret delivery method. Record answers in
-      docs/SERVER-HARNESS-RUNBOOK.md §1. Blocks Part 2 of PLAN.md.
+- [ ] T008 (P2) Server access details — CONFIRMED 2026-07-24: cluster = Tillicum
+      (UW HPC), SLURM, $250 compute credits; frontier API = $20 credit (provider
+      name still to be confirmed by user — "MetaSpark" per voice transcript,
+      verify exact name for configs). Still needed: partitions, GPU types/VRAM,
+      storage quota + purge policy, compute-node network policy, secret delivery.
+      Record answers in docs/SERVER-HARNESS-RUNBOOK.md §1. Blocks 2.4 slate freeze.
 - [ ] T010 (P3) Rerun the LOW-CONTAMINATION discovery round — the round-3 agent
       hunting deliberately obscure A/B pairs died on a session usage limit
       (2026-07-24, resets 7pm PT) with zero results. Why it matters: the pool of 44

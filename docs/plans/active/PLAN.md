@@ -188,6 +188,12 @@ New decisions (2026-07-24, from the Codex-review grill session):
   analysis-decisions-pending.md — never an informal judgment after seeing results.
 - Old plans retire (move to completed/ with SUPERSEDED banners) + full git commit at
   T009, after the user signs off on this reworked plan.
+- Budget reality (2026-07-24, supersedes the $500 planning ceiling): cluster =
+  Tillicum (UW), $250 in compute credits (GPU jobs only — Lean checking is CPU;
+  dev is mock-adapter/CPU only; prefer ≤32B open-weight models); frontier API =
+  $20 credit (covers pilot + cheap-provider core Tier 1; premium-model core would
+  need a ~$30-50 top-up, decided post-pilot from measured per-request cost). The
+  stop-gate is now the actual remaining credit, tracked per RUNBOOK §8/§9.
 
 ## Scientific Contract (invariant)
 
