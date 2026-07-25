@@ -1,0 +1,11 @@
+The available imports are:
+{{imports}}
+
+Complete this exact Lean declaration:
+{{lean_statement}}
+
+The following informal proof is valid context. Produce any correct formal proof; matching
+its strategy is not required:
+{{informal_proof}}
+
+Return only the proof body.

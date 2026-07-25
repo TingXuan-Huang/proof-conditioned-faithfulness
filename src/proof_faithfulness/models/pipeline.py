@@ -7,6 +7,7 @@ import os
 import signal
 import subprocess
 import tempfile
+from decimal import Decimal
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -38,7 +39,7 @@ class PipelineResponse(BaseModel):
     provider_request_id: str | None = None
     input_tokens: int = Field(ge=0)
     output_tokens: int = Field(ge=0)
-    usd_cost: float | None = Field(default=None, ge=0)
+    usd_cost: Decimal | None = Field(default=None, ge=0)
     finish_reason: str | None = None
 
 
@@ -143,7 +144,8 @@ class JsonSubprocessAdapter:
                 parsed = PipelineResponse.model_validate_json(raw_response)
             except ValidationError as error:
                 raise AdapterResponseError(
-                    f"{self.name} pipeline returned invalid response JSON"
+                    f"{self.name} pipeline returned invalid response JSON",
+                    raw_response=raw_response,
                 ) from error
 
         usage = TokenUsage(
@@ -152,7 +154,11 @@ class JsonSubprocessAdapter:
         )
         usd_cost = compute_usd_cost(usage, self._config.model.pricing_usd_per_mtok)
         if parsed.usd_cost is not None and parsed.usd_cost != usd_cost:
-            raise AdapterResponseError("Pipeline-reported cost does not match pinned pricing")
+            raise AdapterResponseError(
+                "Pipeline-reported cost does not match pinned pricing",
+                raw_response=raw_response,
+                provider_request_id=parsed.provider_request_id,
+            )
         return AdapterResult(
             request_id=model_input.request.request_id,
             text=parsed.text,
@@ -223,7 +229,11 @@ def _read_limited_file(path: Path, *, max_bytes: int, pipeline_name: str) -> byt
     with path.open("rb") as response_file:
         content = response_file.read(max_bytes + 1)
     if len(content) > max_bytes:
-        raise AdapterResponseError(f"{pipeline_name} response exceeds {max_bytes} byte limit")
+        raise AdapterResponseError(
+            f"{pipeline_name} response exceeds {max_bytes} byte limit",
+            raw_response=content,
+            raw_truncated=True,
+        )
     return content
 
 

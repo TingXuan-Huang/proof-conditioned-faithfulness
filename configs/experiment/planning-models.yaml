@@ -1,0 +1,46 @@
+schema_version: "1.0"
+models:
+  - backend_config:
+      adapter: mock
+      provider: mock
+      model_key: proof_conditioned_model
+      model_id: planning/proof-conditioned
+      model_revision: planning-v1
+      response_text: "by\n  trivial"
+      capabilities:
+        proof_conditioning: true
+        deterministic_seed: true
+        local_inference: true
+        structured_output: false
+        repair: false
+        cost_reporting: true
+    mock_chat_template: mock_chat_v1.txt
+    mock_decoding:
+      temperature: 0.2
+      top_p: 1.0
+      max_tokens: 8192
+      seed_base: 20260724
+    mock_max_input_tokens: 16384
+    paid_idempotency_verified: false
+  - backend_config:
+      adapter: mock
+      provider: mock
+      model_key: theorem_only_baseline
+      model_id: planning/theorem-only
+      model_revision: planning-v1
+      response_text: "by\n  trivial"
+      capabilities:
+        proof_conditioning: false
+        deterministic_seed: true
+        local_inference: true
+        structured_output: false
+        repair: false
+        cost_reporting: true
+    mock_chat_template: mock_chat_v1.txt
+    mock_decoding:
+      temperature: 0.2
+      top_p: 1.0
+      max_tokens: 8192
+      seed_base: 20260724
+    mock_max_input_tokens: 16384
+    paid_idempotency_verified: false

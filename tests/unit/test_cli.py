@@ -10,6 +10,19 @@ from proof_faithfulness.cli import app
 runner = CliRunner()
 
 
+def test_top_level_generation_plan_reports_exact_tier_one_counts() -> None:
+    result = runner.invoke(app, ["plan", "--tier", "1", "--split", "pilot"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert {item["model_key"]: item["requests"] for item in payload["models"]} == {
+        "proof_conditioned_model": 45,
+        "theorem_only_baseline": 15,
+    }
+    assert payload["total_requests"] == 60
+    assert payload["split_status"] == "proposed"
+
+
 def test_schema_export_requires_force_for_changed_output(tmp_path: Path) -> None:
     output_dir = tmp_path / "schemas"
     first_result = runner.invoke(app, ["schema", "export", "--output-dir", str(output_dir)])
@@ -53,6 +66,7 @@ decoding:
 concurrency: 1
 pricing_usd_per_mtok: {input: 1.0, output: 2.0}
 pipeline_commit: null
+context_window: 4096
 """,
         encoding="utf-8",
     )
@@ -98,6 +112,7 @@ decoding: {{temperature: 0.2, top_p: 1.0, max_tokens: 128, seed_base: 7}}
 concurrency: 1
 pricing_usd_per_mtok: {{input: 1.0, output: 2.0}}
 pipeline_commit: null
+context_window: 4096
 """,
         encoding="utf-8",
     )

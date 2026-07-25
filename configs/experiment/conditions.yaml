@@ -1,0 +1,66 @@
+schema_version: "1.0"
+samples_per_cell: 3
+conditions:
+  - key: theorem_only
+    tier: 1
+    proof_id: null
+    proof_source: none
+    system_template: base_system_v1.txt
+    user_template: theorem_only_v1.txt
+    requires_proof_conditioning: false
+  - key: proof_a
+    tier: 1
+    proof_id: A
+    proof_source: proof
+    system_template: base_system_v1.txt
+    user_template: preservation_v1.txt
+    requires_proof_conditioning: true
+  - key: proof_b
+    tier: 1
+    proof_id: B
+    proof_source: proof
+    system_template: base_system_v1.txt
+    user_template: preservation_v1.txt
+    requires_proof_conditioning: true
+  - key: proof_a_validity
+    tier: 2
+    proof_id: A
+    proof_source: proof
+    system_template: base_system_v1.txt
+    user_template: validity_only_v1.txt
+    requires_proof_conditioning: true
+  - key: proof_b_validity
+    tier: 2
+    proof_id: B
+    proof_source: proof
+    system_template: base_system_v1.txt
+    user_template: validity_only_v1.txt
+    requires_proof_conditioning: true
+  - key: proof_a_paraphrase
+    tier: 3
+    proof_id: A
+    proof_source: paraphrase
+    system_template: base_system_v1.txt
+    user_template: preservation_v1.txt
+    requires_proof_conditioning: true
+  - key: proof_b_paraphrase
+    tier: 3
+    proof_id: B
+    proof_source: paraphrase
+    system_template: base_system_v1.txt
+    user_template: preservation_v1.txt
+    requires_proof_conditioning: true
+  - key: proof_a_paraphrase_validity
+    tier: 4
+    proof_id: A
+    proof_source: paraphrase
+    system_template: base_system_v1.txt
+    user_template: validity_only_v1.txt
+    requires_proof_conditioning: true
+  - key: proof_b_paraphrase_validity
+    tier: 4
+    proof_id: B
+    proof_source: paraphrase
+    system_template: base_system_v1.txt
+    user_template: validity_only_v1.txt
+    requires_proof_conditioning: true

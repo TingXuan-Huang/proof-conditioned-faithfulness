@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from collections.abc import Hashable
 from datetime import datetime
+from decimal import Decimal
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, StringConstraints, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from proof_faithfulness.ids import compute_request_id
 
@@ -338,11 +339,11 @@ class GenerationResponse(ContractModel):
     request_id: Hash
     model_key: NonEmptyString
     revision: NonEmptyString
-    raw: JsonValue
+    raw: str
     text: str
     finish_reason: str | None = None
     usage: TokenUsage
-    usd_cost: float = Field(ge=0)
+    usd_cost: Decimal = Field(ge=0)
     latency_s: float = Field(ge=0)
     started_at: datetime
     completed_at: datetime

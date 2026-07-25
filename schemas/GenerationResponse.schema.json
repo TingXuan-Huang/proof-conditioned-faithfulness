@@ -1,6 +1,5 @@
 {
   "$defs": {
-    "JsonValue": {},
     "TokenUsage": {
       "additionalProperties": false,
       "description": "Provider-reported token counts.",
@@ -60,7 +59,8 @@
       "type": "string"
     },
     "raw": {
-      "$ref": "#/$defs/JsonValue"
+      "title": "Raw",
+      "type": "string"
     },
     "request_id": {
       "pattern": "^[0-9a-f]{64}$",
@@ -90,9 +90,17 @@
       "$ref": "#/$defs/TokenUsage"
     },
     "usd_cost": {
-      "minimum": 0,
-      "title": "Usd Cost",
-      "type": "number"
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "title": "Usd Cost"
     }
   },
   "required": [

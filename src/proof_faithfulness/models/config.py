@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+from decimal import Decimal
 from pathlib import Path
 from typing import Literal
 
@@ -31,8 +32,8 @@ class DecodingConfig(ConfigModel):
 class PricingConfig(ConfigModel):
     """USD prices per one million input and output tokens."""
 
-    input: float = Field(ge=0)
-    output: float = Field(ge=0)
+    input: Decimal = Field(ge=0)
+    output: Decimal = Field(ge=0)
 
 
 class ModelConfig(ConfigModel):
@@ -50,6 +51,10 @@ class ModelConfig(ConfigModel):
     concurrency: int = Field(gt=0)
     pricing_usd_per_mtok: PricingConfig
     pipeline_commit: str | None
+    context_window: int = Field(gt=0)
+    dtype: NonEmptyString | None = None
+    quantization: NonEmptyString | None = None
+    serving_args: tuple[NonEmptyString, ...] = ()
 
     @property
     def adapter(self) -> str:
@@ -107,6 +112,13 @@ class ModelConfig(ConfigModel):
             self.pricing_usd_per_mtok.input != 0 or self.pricing_usd_per_mtok.output != 0
         ):
             raise ValueError("Local model and pipeline pricing must be zero")
+        if self.context_window <= self.decoding.max_tokens:
+            raise ValueError("context_window must exceed decoding.max_tokens")
+        if self.provider == "vllm":
+            if self.dtype is None:
+                raise ValueError("vLLM configs require an explicit dtype")
+        elif self.dtype is not None or self.quantization is not None or self.serving_args:
+            raise ValueError("Serving dtype, quantization, and args are only valid for vLLM")
         if self.pipeline_commit is not None and not re.fullmatch(
             r"[0-9a-f]{40}", self.pipeline_commit
         ):

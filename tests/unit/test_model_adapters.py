@@ -6,6 +6,8 @@ import json
 import subprocess
 import sys
 import time
+from datetime import UTC, datetime
+from decimal import Decimal
 from pathlib import Path
 from typing import Any, Literal
 
@@ -13,6 +15,7 @@ import httpx
 import pytest
 from pydantic import ValidationError
 
+from proof_faithfulness.generation.budget import MissingApprovalError, PaidRequestPermit
 from proof_faithfulness.ids import compute_request_id
 from proof_faithfulness.models import (
     ChatMessage,
@@ -33,6 +36,7 @@ from proof_faithfulness.models.base import (
 )
 from proof_faithfulness.models.openai_compat import (
     OpenAICompatibleAdapter,
+    OpenAITransportError,
     PaidRequestBlockedError,
     compute_usd_cost,
 )
@@ -77,6 +81,8 @@ def _model_config(
             "concurrency": 1,
             "pricing_usd_per_mtok": {"input": 0.0, "output": 0.0},
             "pipeline_commit": pipeline_commit,
+            "context_window": 4096,
+            "dtype": "bfloat16" if provider == "vllm" else None,
         }
     )
 
@@ -217,6 +223,21 @@ def _input_for_pipeline(config: PipelineAdapterConfig) -> ModelInput:
     )
 
 
+def _paid_permit(request_id: str) -> PaidRequestPermit:
+    return PaidRequestPermit(
+        run_id="paid-smoke",
+        request_id=request_id,
+        scope="smoke-tests",
+        approval_path="approvals/smoke.json",
+        approval_sha256="f" * 64,
+        requests_sha256="e" * 64,
+        request_count=1,
+        inference_fingerprint="d" * 64,
+        reserved_usd=Decimal("0.01"),
+        issued_at=datetime.now(UTC),
+    )
+
+
 def test_mock_adapter_is_deterministic_and_protocol_compatible() -> None:
     config = MockAdapterConfig()
     model_input = _model_input(
@@ -316,20 +337,44 @@ def test_openai_adapter_sends_exact_payload() -> None:
 
 def test_cost_calculation_matches_hand_computation() -> None:
     usage = TokenUsage(input_tokens=10, output_tokens=4)
-    pricing = PricingConfig(input=2.0, output=4.0)
-    assert compute_usd_cost(usage, pricing) == pytest.approx(0.000036)
+    pricing = PricingConfig(input=Decimal(2), output=Decimal(4))
+    assert compute_usd_cost(usage, pricing) == Decimal("0.000036")
 
 
 def test_http_failure_is_normalized_without_retained_request() -> None:
     config = _model_config()
     adapter = OpenAICompatibleAdapter(
         config,
-        transport=httpx.MockTransport(lambda _: httpx.Response(503)),
+        transport=httpx.MockTransport(
+            lambda _: httpx.Response(
+                503,
+                headers={"Retry-After": "2"},
+                json={"id": "provider-503", "error": "busy"},
+            )
+        ),
     )
-    with pytest.raises(AdapterTransportError, match="HTTP 503") as captured:
+    with pytest.raises(OpenAITransportError, match="HTTP 503") as captured:
         adapter.generate(_input_for_model(config))
+    assert captured.value.status_code == 503
+    assert captured.value.retry_after_s == 2
+    assert captured.value.provider_request_id == "provider-503"
+    assert captured.value.raw_response is not None
     assert captured.value.__cause__ is None
     assert captured.value.__context__ is None
+
+
+def test_permanent_http_error_retains_provider_body() -> None:
+    config = _model_config()
+    raw = b'{"id":"provider-400","error":"invalid"}'
+    adapter = OpenAICompatibleAdapter(
+        config,
+        transport=httpx.MockTransport(lambda _: httpx.Response(400, content=raw)),
+    )
+
+    with pytest.raises(AdapterResponseError, match="HTTP 400") as captured:
+        adapter.generate(_input_for_model(config))
+    assert captured.value.raw_response == raw
+    assert captured.value.provider_request_id == "provider-400"
 
 
 @pytest.mark.parametrize("name", ["n", "best_of", "stream"])
@@ -364,8 +409,10 @@ def test_openai_adapter_rejects_oversized_response() -> None:
         transport=httpx.MockTransport(lambda _: httpx.Response(200, content=b"123456789")),
         max_response_bytes=8,
     )
-    with pytest.raises(AdapterResponseError, match="byte limit"):
+    with pytest.raises(AdapterResponseError, match="byte limit") as captured:
         adapter.generate(_input_for_model(config))
+    assert captured.value.raw_response == b"12345678"
+    assert captured.value.raw_truncated is True
 
 
 def test_openai_adapter_rejects_multiple_choices() -> None:
@@ -380,8 +427,9 @@ def test_openai_adapter_rejects_multiple_choices() -> None:
         config,
         transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body)),
     )
-    with pytest.raises(AdapterResponseError, match="response schema"):
+    with pytest.raises(AdapterResponseError, match="response schema") as captured:
         adapter.generate(_input_for_model(config))
+    assert captured.value.raw_response is not None
 
 
 def test_openai_adapter_requires_usage_on_success() -> None:
@@ -391,8 +439,9 @@ def test_openai_adapter_requires_usage_on_success() -> None:
         config,
         transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body)),
     )
-    with pytest.raises(AdapterResponseError, match="missing token usage"):
+    with pytest.raises(AdapterResponseError, match="missing token usage") as captured:
         adapter.generate(_input_for_model(config))
+    assert captured.value.raw_response is not None
 
 
 def test_frontier_request_is_blocked_without_budget_permit(
@@ -416,6 +465,109 @@ def test_frontier_request_is_blocked_without_budget_permit(
     assert secret not in repr(captured.value)
     assert captured.value.__cause__ is None
     assert captured.value.__context__ is None
+
+
+def test_frontier_paid_entrypoint_requires_a_configured_verifier(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TEST_PROVIDER_KEY", "fixture-secret")
+    config = _model_config(
+        category="frontier_api",
+        provider="openai_compat_api",
+        base_url="https://example.test/v1",
+        api_key_env="TEST_PROVIDER_KEY",
+    )
+    model_input = _input_for_model(config)
+    adapter = OpenAICompatibleAdapter(
+        config,
+        transport=httpx.MockTransport(lambda _: pytest.fail("transport must not run")),
+    )
+
+    with pytest.raises(PaidRequestBlockedError, match="permit verifier"):
+        adapter.generate_paid(model_input, _paid_permit(model_input.request.request_id))
+
+
+def test_frontier_paid_entrypoint_revalidates_before_transport(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TEST_PROVIDER_KEY", "fixture-secret")
+    config = _model_config(
+        category="frontier_api",
+        provider="openai_compat_api",
+        base_url="https://example.test/v1",
+        api_key_env="TEST_PROVIDER_KEY",
+    )
+    model_input = _input_for_model(config)
+    calls: list[str] = []
+
+    def reject(_: PaidRequestPermit) -> None:
+        calls.append("verify")
+        raise MissingApprovalError("fixture approval disappeared")
+
+    def forbidden_transport(_: httpx.Request) -> httpx.Response:
+        calls.append("transport")
+        raise AssertionError("transport must not run")
+
+    adapter = OpenAICompatibleAdapter(
+        config,
+        paid_permit_verifier=reject,
+        transport=httpx.MockTransport(forbidden_transport),
+    )
+
+    with pytest.raises(MissingApprovalError, match="approval disappeared"):
+        adapter.generate_paid(model_input, _paid_permit(model_input.request.request_id))
+    assert calls == ["verify"]
+
+
+def test_frontier_paid_entrypoint_binds_permit_and_preserves_direct_block(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TEST_PROVIDER_KEY", "fixture-secret")
+    config = _model_config(
+        category="frontier_api",
+        provider="openai_compat_api",
+        base_url="https://example.test/v1",
+        api_key_env="TEST_PROVIDER_KEY",
+    )
+    model_input = _input_for_model(config)
+    calls: list[str] = []
+
+    def verify(_: PaidRequestPermit) -> None:
+        calls.append("verify")
+
+    observed_headers: dict[str, str] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append("transport")
+        observed_headers.update(request.headers)
+        return httpx.Response(
+            200,
+            json={
+                "id": "frontier-1",
+                "choices": [{"message": {"content": "by trivial"}, "finish_reason": "stop"}],
+                "usage": {"prompt_tokens": 10, "completion_tokens": 4},
+            },
+        )
+
+    adapter = OpenAICompatibleAdapter(
+        config,
+        paid_permit_verifier=verify,
+        transport=httpx.MockTransport(handler),
+    )
+    with pytest.raises(PaidRequestBlockedError, match="budget gate"):
+        adapter.generate(model_input)
+    mismatched = _paid_permit("0" * 64)
+    with pytest.raises(PaidRequestBlockedError, match="request_id"):
+        adapter.generate_paid(model_input, mismatched)
+    assert calls == []
+
+    result = adapter.generate_paid(
+        model_input,
+        _paid_permit(model_input.request.request_id),
+    )
+    assert result.request_id == model_input.request.request_id
+    assert calls == ["verify", "transport"]
+    assert observed_headers["idempotency-key"] == model_input.request.request_id
 
 
 @pytest.mark.parametrize(
@@ -576,6 +728,8 @@ decoding:
 concurrency: 4
 pricing_usd_per_mtok: {input: 0.0, output: 0.0}
 pipeline_commit: null
+context_window: 16384
+dtype: bfloat16
 """,
         encoding="utf-8",
     )

@@ -1,0 +1,7 @@
+The available imports are:
+{{imports}}
+
+Complete this exact Lean declaration:
+{{lean_statement}}
+
+Return only the proof body.

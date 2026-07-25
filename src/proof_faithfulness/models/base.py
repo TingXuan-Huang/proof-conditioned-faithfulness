@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+from decimal import Decimal
 from typing import Literal, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -24,7 +25,20 @@ class AdapterTransportError(AdapterError):
 
 
 class AdapterResponseError(AdapterError):
-    """Raised when a transport returns an invalid response."""
+    """Raised with any received bytes when a transport response is invalid."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        raw_response: bytes | None = None,
+        provider_request_id: str | None = None,
+        raw_truncated: bool = False,
+    ) -> None:
+        super().__init__(message)
+        self.raw_response = raw_response
+        self.provider_request_id = provider_request_id
+        self.raw_truncated = raw_truncated
 
 
 class MissingSecretError(AdapterConfigurationError):
@@ -95,7 +109,7 @@ class AdapterResult(AdapterModel):
     raw_response: bytes
     provider_request_id: str | None = None
     token_usage: TokenUsage
-    usd_cost: float = Field(ge=0)
+    usd_cost: Decimal = Field(ge=0)
     finish_reason: str | None = None
 
 

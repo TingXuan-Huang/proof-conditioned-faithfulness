@@ -1,0 +1,8 @@
+Repair the previous proof body using the compiler diagnostic below. Return only the
+revised proof body. Do not change the theorem or imports.
+
+Previous proof body:
+{{previous_candidate}}
+
+Exact compiler diagnostic:
+{{compiler_diagnostic}}

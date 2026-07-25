@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from decimal import Decimal
 
 from proof_faithfulness.models.base import (
     AdapterResult,
@@ -50,6 +51,6 @@ class MockAdapter:
             ),
             provider_request_id=response["id"],
             token_usage=TokenUsage(input_tokens=0, output_tokens=0),
-            usd_cost=0,
+            usd_cost=Decimal(0),
             finish_reason="stop",
         )

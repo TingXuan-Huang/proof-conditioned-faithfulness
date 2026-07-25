@@ -2,6 +2,7 @@
 
 import subprocess
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -30,11 +31,11 @@ def _generation_response() -> dict[str, object]:
         "request_id": REQUEST_ID,
         "model_key": "fixture_model",
         "revision": "revision-1",
-        "raw": {"choices": [{"message": {"content": "by trivial"}}]},
+        "raw": '{"choices":[{"message":{"content":"by trivial"}}]}',
         "text": "by trivial",
         "finish_reason": "stop",
         "usage": {"input_tokens": 10, "output_tokens": 2},
-        "usd_cost": 0.0,
+        "usd_cost": Decimal(0),
         "latency_s": 1.0,
         "started_at": STARTED_AT,
         "completed_at": COMPLETED_AT,

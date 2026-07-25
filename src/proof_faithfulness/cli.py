@@ -14,6 +14,8 @@ import yaml
 
 from proof_faithfulness import __version__
 from proof_faithfulness.artifacts import atomic_write_bytes
+from proof_faithfulness.evaluation.cli import app as evaluation_app
+from proof_faithfulness.generation.cli import generation_app
 from proof_faithfulness.models.config import compute_adapter_config_hash, load_adapter_config
 from proof_faithfulness.schema import SCHEMA_MODELS
 
@@ -24,6 +26,8 @@ model_app = typer.Typer(help="Inspect model and prover adapter configuration.")
 app.add_typer(schema_app, name="schema")
 app.add_typer(environment_app, name="env")
 app.add_typer(model_app, name="model")
+app.add_typer(generation_app)
+app.add_typer(evaluation_app, name="evaluation")
 
 
 @app.callback(invoke_without_command=True)
