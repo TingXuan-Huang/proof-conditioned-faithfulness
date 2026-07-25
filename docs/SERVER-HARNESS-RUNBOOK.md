@@ -2,9 +2,10 @@
 
 This is the control-plane companion to docs/plans/active/PLAN.md (which says WHAT to
 build and in what order; this file says HOW to operate it: setup, jobs, run states,
-locks, budgets, logs, recovery). The server is a SLURM cluster (confirmed 2026-07-24;
-partition/GPU/quota details tracked as todo T008 — record them in §1 when known).
-Everything here is written for a stateless agent arriving with only a fresh clone.
+locks, budgets, logs, recovery). The SLURM host facts discovered under T008 are recorded
+in §1; only Tillicum account-specific allocation/billing, direct compute-node egress,
+secret delivery, and the exact frontier provider remain open. Everything here is written
+for a stateless agent arriving with only a fresh clone.
 
 ## 1. Server facts (fill in at environment discovery, PLAN.md 2.1)
 
@@ -189,7 +190,13 @@ coding-standard/style/shell.md):
     set -euo pipefail
     source ~/.proof_faithfulness_env
     cd "$SLURM_SUBMIT_DIR"
-    uv run proof-faithfulness run --run-id <run_id> --stage <stage>
+    uv run proof-faithfulness run \
+        --requests <finalized-requests.jsonl> \
+        --run-id <run_id> \
+        --models configs/experiment/planning-models.yaml \
+        --outputs-root outputs \
+        --approvals-root approvals \
+        --approval-scope <scope>
 
 Operate with:
 
@@ -236,23 +243,33 @@ in-flight request.
 ## 7. Concurrency & rate limits
 
 Per-provider concurrency cap in configs/models/<provider>.yaml (default 4 until
-measured). Respect HTTP 429/Retry-After via tenacity with exponential backoff + jitter;
-retries reuse the SAME request_id (transport retries are not new samples — PLAN.md
-Decision Log). Log every retry as an event. Local vLLM inference: one model resident
-per GPU; never co-schedule two model servers on one GPU without measured headroom.
+measured). Transport retries use the harness's internal bounded `RetryPolicy` (default:
+three attempts, 0.25 s exponential base, 4 s cap, 10% jitter), and provider-classified
+`Retry-After` may raise the delay. Retries reuse the SAME request_id and checksummed
+attempt ledger; they are not new samples. A paid transport failure is not retried unless
+the provider-specific classifier proves it failed before acceptance; ambiguous paid
+attempts fail closed. Log every retry as an event. Local vLLM inference: one model
+resident per GPU; never co-schedule two model servers on one GPU without measured
+headroom.
 
 ## 8. Budget enforcement & approval records
 
 Machine-readable approvals live in `approvals/` (versioned):
 
-    {"scope": "pilot-tier1", "run_ids": ["..."], "max_usd": 40.0,
+    {"scope": "pilot-tier1", "run_ids": ["..."],
+     "requests_sha256": "<sha256 of finalized requests.jsonl>",
+     "request_count": 60, "max_usd": "40.0",
      "approved_by": "Tingxuan", "date": "2026-08-XX", "note": "..."}
 
-The harness refuses to enter `running` on paid work without a matching record, halts
-new requests when the run's cumulative cost (from events.jsonl) reaches max_usd
-(`budget_halt` event, state → failed with reason budget), and enforces the $500
-aggregate ceiling across all runs. A chat "yes" is not an approval until this file
-exists — the agent may DRAFT the record; the human commits it (agents never approve).
+Each approval must bind exactly one run_id and the finalized manifest's byte checksum and
+request count. The harness refuses paid transport without exactly one matching record,
+atomically reserves each request's worst-case cost, and settles provider-reported cost in
+`outputs/runs/<run_id>/budget.json`. That ledger and its SHA-256 sidecar are authoritative
+for per-run and aggregate accounting; every scanned run ledger must verify before more
+paid work can proceed. The harness halts before a request would exceed `max_usd` and
+enforces an absolute $500 aggregate ceiling across all run ledgers. A chat "yes" is not
+an approval until this file exists — the agent may DRAFT the record; the human commits it
+(agents never approve).
 
 ## 9. Structured event log
 
@@ -261,6 +278,10 @@ Append-only `outputs/runs/<run_id>/events.jsonl`, one JSON object per line:
 request_end (with usd_cost, latency_s, tokens), retry, lean_check_start/end,
 budget_halt, lock_acquired/released/broken, error. No secrets, no proof text (bodies
 live in the artifact store; events reference request_ids).
+
+Events are operational telemetry, not the spend authority. Use the verified
+`budget.json` plus `budget.json.sha256` for approval-bound reservation and settlement
+accounting; the event-log query below is only a monitoring cross-check.
 
 Monitoring one-liners:
 
@@ -293,5 +314,6 @@ corrections happen in a child run with parent_run_id (PLAN.md S1).
 
 `scancel <jobid>` → worker traps signal, flushes, releases lock → human/agent sets
 state=cancelled with reason in history → spend-to-date noted in the approval's ledger
-note. A cancelled run may be resumed (→ submitted) under the same approval if budget
-remains, or closed permanently.
+record and events without editing the human approval. A cancelled run may be resumed
+(→ submitted) under the same approval if its manifest identity is unchanged and verified
+budget remains, or closed permanently.

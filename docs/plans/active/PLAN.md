@@ -44,6 +44,38 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
 
 ## Progress
 
+- [x] 2026-07-25: Fixture-backed S1-S5 engineering checkpoint complete. All stage Exit
+      criteria are green without network access or paid requests: S2 `lake build` passed
+      and the trusted-checker suite passed 17 tests; S3 passed 13 dependency-probe tests;
+      S4 planned 45 proof-conditioned + 15 theorem-only = 60 Tier-1 pilot requests at
+      `$0`, `plan-check` validated the plan and reported Tier 2 as `+30/+0`, the exact
+      harness suite passed 21 tests, and the focused S4 suite passed 131 tests; S5 passed
+      its exact 41-test evaluation/blinding exit.
+- [x] 2026-07-25: One integration-gauntlet pass recorded. Full pytest reached 246 passed
+      with one stale test fixture failing because it omitted the newly required
+      `context_window`; after the fixture fix, its targeted regression passed (one
+      test). Full Ruff passed. Pyright first exposed one Decimal typing error, then
+      passed with zero errors after the fix and `module load gcc/12.3.0`. `lake build`
+      passed with one non-fatal unused-variable warning. This checkpoint does not claim
+      an unobserved post-fix full-pytest rerun.
+- [ ] 2026-07-25: waiting on human: Gate P approval of exactly five pilot pairs. The
+      proposed 001/033/036/040/041 set remains draft and is not promoted here.
+- [ ] 2026-07-25: waiting on human: generated Lean reference proofs for
+      001/033/036/040/041, followed by human faithfulness approval; until then Gate S is
+      open and all S2/S3 evidence is fixture-only.
+- [ ] 2026-07-25: waiting on human: S3 workshop metric choice. Explicit-step
+      utilization remains the provisional implementation; full graph extraction is not
+      frozen.
+- [ ] 2026-07-25: waiting on human: T012 frontier key delivery and a machine-readable
+      `approvals/` permit before any paid Gate-A smoke request. Secret delivery and
+      remaining billing/account details are also undiscovered T008 inputs.
+- [ ] 2026-07-25: waiting on human: T006 analysis freeze after the pilot and T007 second
+      annotator. Neither is bypassed or marked approved by this engineering checkpoint.
+- [ ] 2026-07-25: Repository publication is blocked on this server's existing GitHub
+      credentials. `git push origin main` failed with `could not read Username` for the
+      HTTPS remote; `gh` is unavailable and the previously tested SSH path was denied.
+      Local checkpoint commits are preserved, and no credential or remote configuration
+      was changed.
 - [x] 2026-07-22: Original design interview, related-work verification, first ExecPlan.
 - [x] 2026-07-24: Project repo scaffolded (`proof-conditioned-faithfulness/`), agent-first
       layout, coding-standard kit, AGENTS.md map, git initialized.
@@ -102,13 +134,28 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
       as wheel/sdist; the preflight suite passes 91 tests, Ruff, Pyright, and `lake build`.
       Independent review approved the adapter scope after identity, cardinality, size,
       secret, and process-lifecycle hardening.
-- [ ] 2026-07-25: S4 remains in progress: generation orchestration, atomic budget
-      permits, retry/resume integration, and complete mock run-directory tests remain.
-      This does not pass S4, Gate C, or Gate A; real-model smoke checks have not run.
+- [x] 2026-07-25: S2 trusted checker complete on fixtures. Fresh-process compilation,
+      exact one-term parsing, normalized failures, no-sorry/custom-axiom enforcement,
+      axiom audit, diagnostic-spoof refusal, and socket isolation passed 17 tests;
+      `lake build` was green.
+- [x] 2026-07-25: S3 dependency/utilization probe complete on fixtures. Used constants,
+      proof-term `letFun`/`letE` local-fact utilization, tactic evidence, deletion tests,
+      and trusted-report spoof defenses passed 13 tests. The final workshop metric
+      remains a human gate.
+- [x] 2026-07-25: S4 generation harness complete on mock/offline fixtures. Artifact
+      persistence, same-ID transport retries, verified resume, interruption recovery,
+      exact request planning, hard budget stop, and approval refusal passed the exact
+      exit and focused 131-test suite. No network or paid request was made.
+- [x] 2026-07-25: S5 evaluation and annotation tooling complete on fixtures. Blinded
+      export, signature extraction, annotation/calibration/adjudication flows, and
+      hand-checked agreement statistics passed the exact 41-test exit.
 - [ ] YYYY-MM-DD: Gate S inputs ready: the five human-approved pilot statements and all
       ten reference proofs parse/elaborate, compile, pass the axiom audit, and receive
       human approval.
-- [ ] YYYY-MM-DD: Implementation stages S1-S5 complete with tests (Part 2.3).
+- [x] 2026-07-25: Implementation stages S1-S5 complete against fixtures and mock
+      transport (Part 2.3). This is an engineering checkpoint only: Gate C remains open
+      until ordered Gates P and S supply approved pilot inputs and every component runs
+      against them; Gate A and all real-model execution also remain open.
 - [ ] YYYY-MM-DD: Model slate smoke-tested and frozen (needs API keys on server).
 - [ ] YYYY-MM-DD: Pilot smoke slice (1-2 theorems) run and human-reviewed.
 - [ ] YYYY-MM-DD: Full pilot (5 pairs, Tier 1) run; human checkpoint; Tier 2 run.
@@ -123,6 +170,21 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
 
 ## Surprises & Discoveries
 
+- 2026-07-25: Review found that source/binder-name matching was not sound evidence for
+  explicit-local utilization: theorem parameters and unrelated shadowed lambdas can use
+  the same name. S3 now derives local facts from elaborated proof-term `letFun`/`letE`
+  structure and keeps syntax evidence separate. Regression fixtures cover duplicate
+  higher-order binder names, an unrelated shadowed lambda, and anonymous `have`.
+- 2026-07-25: Tightening `ModelConfig` made `context_window` required and exposed one
+  stale full-suite fixture (246 tests had already passed). The fixture was corrected and
+  its targeted regression passed. Pyright independently exposed one Decimal mismatch;
+  after correction and loading GCC 12.3.0 for `libatomic`, it reported zero errors.
+- 2026-07-25: Independent reviews found load-bearing failures before the checkpoint:
+  trusted-report truncation/spoof ambiguity; cross-run paid request-ID duplication and
+  approval/ceiling/lock races; incomplete raw failure evidence; and blinding,
+  calibration, agreement, and crash-recovery gaps. These blocker findings were fixed
+  and regression-tested. Cosmetic issues and low-risk extensibility findings remain
+  documented prototype work rather than checkpoint blockers.
 - 2026-07-24: NeurIPS 2026 has 66 accepted workshops; only two fit this project
   (MATH-AI, VERICODEGEN). MATH-AI's real deadline is Sept 25 — four weeks later than
   the Aug 29 assumption the old plan's schedule pressure was built on. The 30-pair core
@@ -157,6 +219,26 @@ preregistered precision rule toward 50; first-attempt track primary with repair 
 (≤2 rounds) separate; immutable raw outputs, transport retries only, never best-of;
 sorry/admit/custom axioms rejected, standard Mathlib classical axioms disclosed;
 Python 3.12 + uv + Pydantic + Typer + pytest + Ruff + Pyright + Lean 4 + Mathlib.
+
+New decisions (2026-07-25, prototype engineering checkpoint):
+
+- Review policy for this prototype: correctness, data-integrity, blinding, paid-spend,
+  fail-closed trust boundaries, and exact S1-S5 Exit failures are blocking and must be
+  fixed. Cosmetic issues, low-risk extensibility, performance polish, and broader
+  library/publication hardening may be documented and deferred. This does not weaken
+  the human gates, paid-request permit, or later publish review.
+- S1-S5 completion means their exact fixture/mock Exit criteria passed. It does not
+  imply readiness-gate approval: P and S remain human-owned, C must wait for those
+  approved inputs and ordered execution, and A requires real models plus a paid permit
+  where applicable.
+- S3 provisionally reports explicit-step utilization. Syntax-level route labels remain
+  heuristic evidence for calibration and human review, not a frozen full dependency-
+  graph metric; the HUMAN GATE in S3 decides the workshop metric.
+- Deferred prototype limitations include conservative blinding false positives for
+  bare numeric sample indices, broader Part-3 inferential metrics, optional batch
+  transport, a production request-order/randomization policy, and non-critical API/
+  extensibility polish. None invalidates the exact fixture exits, but each must be
+  revisited before its corresponding production or publish claim.
 
 New decisions (2026-07-24, from the plan-restructuring walkthrough):
 
@@ -278,14 +360,16 @@ agent run. External agents (Codex) feed the same folder via the same template; t
 Batch line records provenance. Comparison/dedup across agent outputs happens at human
 review.
 
-Current pool: 001-006 drafted (see files). Pilot needs 5 approved pairs spanning
-multiple domains and proof-structure types; aim for ≤1 HIGH-contamination item in the
-pilot.
+Current pool: 001-044 drafted. Reference briefs exist for the proposed 001/033/036/
+040/041 pilot set, but neither that set nor any candidate Status is human-approved.
+The pilot needs 5 approved pairs spanning multiple domains and proof-structure types;
+aim for ≤1 HIGH-contamination item in the pilot.
 
-### 1.5 Repo publication — PENDING (T004)
-Create GitHub remote (name/visibility: user decision pending; provisional
-recommendation private until release), push, confirm server can clone. After this,
-GitHub is the single source of truth; laptop→server file copying is prohibited.
+### 1.5 Repo publication — DONE 2026-07-24 (T004)
+The GitHub remote exists and the server checkout was built from it. GitHub remains the
+single source of truth and laptop→server file copying is prohibited. The 2026-07-25
+checkpoint commits are currently local because this server lacks working GitHub
+credentials; see Progress for the exact push failure.
 
 ## Part 2 — SERVER (all code, all runs)
 
@@ -569,16 +653,19 @@ PROGRESS.md and the coding-standard §8 process-reflection report (proposal-only
 |---|---|---|---|
 | T006 | Freeze analysis decisions (a)-(e) + dispute rule (g) post-pilot | Tingxuan | Core run (2.6) |
 | T007 | Second annotator (or preregistered fallback) | Tingxuan | Annotation (3.1) |
-| T008 | Tillicum partitions/GPU/quota/network/secret delivery → RUNBOOK §1 | Tingxuan | Real-model smoke/freeze (2.4) |
+| T008 | Tillicum account credit/expiry, direct egress, secret delivery/provider | Tingxuan | Real-model smoke/freeze (2.4) |
+| T012 | Frontier key delivered outside repo plus human-owned approval record | Tingxuan | Gate A |
+| T016 | Generated Lean proofs for proposed 001/033/036/040/041 pilot set | Tingxuan + agent report | Gate S |
 | — | Candidate pool review (001-044) | Tingxuan | Gate P / pilot curation |
 | — | VERICODEGEN fallback go/no-go | Tingxuan | ~Sept 5 |
 
 ## Outcomes & Retrospective
 
-No implementation outcome yet. At completion record: date, final benchmark size, model
-slate, Lean/Mathlib revisions, run-manifest IDs, primary estimates with intervals,
-deviations from this plan, failed approaches, release location, and lessons. State
-plainly whether the primary claim was supported, contradicted, or inconclusive.
+The fixture-backed S1-S5 prototype checkpoint is recorded above; no experiment outcome
+exists yet. At project completion record: date, final benchmark size, model slate,
+Lean/Mathlib revisions, run-manifest IDs, primary estimates with intervals, deviations
+from this plan, failed approaches, release location, and lessons. State plainly whether
+the primary claim was supported, contradicted, or inconclusive.
 
 ## Revision Note
 
