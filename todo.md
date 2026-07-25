@@ -22,6 +22,17 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       Still needed: partitions, GPU availability, storage quota + purge policy,
       compute-node network policy, secret delivery method. Record answers in
       docs/SERVER-HARNESS-RUNBOOK.md §1. Blocks Part 2 of PLAN.md.
+- [ ] T010 (P3) Rerun the LOW-CONTAMINATION discovery round — the round-3 agent
+      hunting deliberately obscure A/B pairs died on a session usage limit
+      (2026-07-24, resets 7pm PT) with zero results. Why it matters: the pool of 44
+      runs famous-heavy (~1/3 HIGH-risk) against the ⅔-new/adapted target, so fresh
+      LOW/LOW-MED pairs are the scarcest resource for the final 30. How: launch 1-3
+      Opus agents with the prompt in data/benchmark/candidates/DISCOVERY-PROMPT.md,
+      objective "minimize contamination" (hunt problem-set corners, regional
+      olympiad training, second-tier identities; agent should reject its own HIGH
+      finds), exclusion list 1-43 + NOTES-library-collapse-catalog.md. File keepers
+      as 045+. Optional — do after (or during) the human review pass reveals which
+      domains still need low-contamination fills.
 - [ ] T007 (P2) Recruit a second qualified annotator (or explicitly preregister a
       single-annotator + LLM-judge fallback). Blocks the annotation phase.
       See analysis-decisions-pending.md §(f).
