@@ -21,12 +21,27 @@ secret NAME, decoding recipe, concurrency cap) — never in code.
 
 ## Category by category
 
-### 1. Frontier API (no GPU; the $500 budget lives here)
+### 1. Frontier API (no GPU; the API budget lives here)
 Runs in the provider's cloud; the server makes HTTPS calls. Needs: one API key
 (secret NAME in config, value via env per RUNBOOK §3) and outbound network — if
 compute nodes are offline (RUNBOOK §1 check), these jobs run from the login node.
 Provisional pick: whichever provider a key exists for (GPT-5.x-class / Claude
 Sonnet / DeepSeek API — the last is cheapest). One model suffices.
+
+**Consumer subscriptions (ChatGPT Plus, Claude Pro/Max) can NEVER be slate models**
+(decision 2026-07-24): chat apps inject hidden system prompts/tools/memory and
+don't pin model revisions (breaks the Scientific Contract), automating them
+violates ToS, and they can't produce auditable request logs. Subscriptions fund
+the dev/review agents (Claude Code, Codex); the API funds the experiment.
+The same applies to using Claude Code/Codex as generators — their harness
+contaminates the sample.
+
+**Cost lever — batch APIs**: providers' batch endpoints (e.g. Anthropic Message
+Batches, OpenAI Batch API) run at ~50% of standard prices with ~1-24h turnaround
+— a perfect fit for our non-interactive, precomputed request lists (`custom_id`
+maps 1:1 onto our deterministic request IDs; results arrive unordered, keyed by
+custom_id, which our resume logic already assumes). S4 SHOULD support a batch
+transport for pilot/core full runs; keep the synchronous path for smoke slices.
 
 ### 2. Open-weight general (cluster GPU via vLLM)
 `vllm serve <model>` inside a SLURM GPU job; harness talks to localhost. Pin the
