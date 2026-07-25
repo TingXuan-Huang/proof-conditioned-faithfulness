@@ -35,6 +35,11 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       finds), exclusion list 1-43 + NOTES-library-collapse-catalog.md. File keepers
       as 045+. Optional — do after (or during) the human review pass reveals which
       domains still need low-contamination fills.
+- [ ] T012 (P0) Frontier API key placement — the user provides the key to the server
+      agent ONLY AFTER all API-related code is written (S4 transports + T011 paid-request
+      permit done, refusal test green). The server agent must then ASK the user for it —
+      never before, and never store the value in repo/logs/context (RUNBOOK §3 secret
+      rules; export via env at job submission). Provider name pending (see T008).
 - [ ] T007 (P2) Recruit a second qualified annotator (or explicitly preregister a
       single-annotator + LLM-judge fallback). Blocks the annotation phase.
       See analysis-decisions-pending.md §(f).
