@@ -1,0 +1,53 @@
+"""Trusted Lean checking and proof-term dependency inspection."""
+
+from proof_faithfulness.lean.checker import (
+    FAILURE_AXIOM_AUDIT,
+    FAILURE_EXTRACTION,
+    FAILURE_MULTIPLE_BLOCKS,
+    FAILURE_PROHIBITED_AXIOM,
+    FAILURE_PROHIBITED_SORRY,
+    FAILURE_SANDBOX,
+    FAILURE_STATEMENT_CHANGED,
+    FAILURE_SUCCESS,
+    FAILURE_SYNTAX,
+    FAILURE_TIMEOUT,
+    FAILURE_TRUST_BYPASS,
+    FAILURE_TYPE,
+    CheckOutcome,
+    LeanCandidateSpec,
+    check_candidate,
+    hash_lean_statement,
+    network_isolation_probe,
+)
+from proof_faithfulness.lean.dependency import (
+    BindingUse,
+    DependencyProbeError,
+    DependencyReport,
+    LocalFactUse,
+    probe_dependencies,
+)
+
+__all__ = [
+    "FAILURE_AXIOM_AUDIT",
+    "FAILURE_EXTRACTION",
+    "FAILURE_MULTIPLE_BLOCKS",
+    "FAILURE_PROHIBITED_AXIOM",
+    "FAILURE_PROHIBITED_SORRY",
+    "FAILURE_SANDBOX",
+    "FAILURE_STATEMENT_CHANGED",
+    "FAILURE_SUCCESS",
+    "FAILURE_SYNTAX",
+    "FAILURE_TIMEOUT",
+    "FAILURE_TRUST_BYPASS",
+    "FAILURE_TYPE",
+    "BindingUse",
+    "CheckOutcome",
+    "DependencyProbeError",
+    "DependencyReport",
+    "LeanCandidateSpec",
+    "LocalFactUse",
+    "check_candidate",
+    "hash_lean_statement",
+    "network_isolation_probe",
+    "probe_dependencies",
+]

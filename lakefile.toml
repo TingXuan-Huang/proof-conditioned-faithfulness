@@ -1,6 +1,6 @@
 name = "proof-faithfulness"
 version = "0.1.0"
-defaultTargets = ["ProofFaithfulness"]
+defaultTargets = ["ProofFaithfulness", "ProofFaithfulnessTest"]
 
 [[require]]
 name = "mathlib"
@@ -9,3 +9,6 @@ rev = "v4.15.0"
 
 [[lean_lib]]
 name = "ProofFaithfulness"
+
+[[lean_lib]]
+name = "ProofFaithfulnessTest"
