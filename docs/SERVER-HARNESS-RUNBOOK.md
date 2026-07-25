@@ -8,13 +8,12 @@ Everything here is written for a stateless agent arriving with only a fresh clon
 
 ## 1. Server facts (fill in at environment discovery, PLAN.md 2.1)
 
-    cluster:          Tillicum (University of Washington HPC), SLURM (confirmed)
+    canonical host:   Tillicum (University of Washington GPU cluster), SLURM
+    development host: Klone (University of Washington Hyak HPC), SLURM
     compute budget:   $250 in cluster credits (2026-07-24) — GPU jobs burn this;
                       keep dev on CPU/login nodes + mock adapters; GPUs only for
                       real batches, serve → run → shut down
-    partitions:       TBD (sinfo)         GPUs: TBD (types/VRAM — gates model sizes)
-    storage quota:    TBD                 network policy: TBD (test from a compute job!)
-    proxy/module cmds: TBD                secret delivery: TBD (see §3)
+    secret delivery:  waiting on human (see §3); do not infer a mechanism
     API budget:       $20 credit on the frontier provider (exact provider name to be
                       confirmed by the user; enough for pilot + cheap-provider core;
                       top-up decision deferred until post-pilot cost data)
@@ -40,18 +39,58 @@ Everything here is written for a stateless agent arriving with only a fresh clon
 ### 1a. Klone facts (2.1 discovery, 2026-07-24)
 
     scheduler:        SLURM               account: stf
-    CPU partitions:   compute, compute-hugemem, cpu-g2, cpu-g2-mem2x
-    allocated GPUs:   gpu-l40 (8), gpu-l40s (10)
-    storage:          GPFS; project quota and purge policy still TBD
+    allocated CPU:    compute (680 CPUs), compute-hugemem (120), cpu-g2 (640),
+                      cpu-g2-mem2x (192); account totals, not current free capacity
+    allocated GPUs:   gpu-l40 (8 total), gpu-l40s (10 total); both 48 GB GDDR6;
+                      each physical node has 8 GPUs; checkpoint access may expose
+                      idle GPUs outside the allocation but is preemptible
+    QoS:              normal; checkpoint QoS ckpt, ckpt-gpu, ckpt-scav
+    storage:          GPFS project path /gscratch/stf; 60 TiB / 60,000,000 files
+                      group quota, 57,993 GB / 47,768,186 files used at the
+                      2026-07-25 probe; this user owns 760 GB / 726,770 files
+    purge/backup:     no timed purge is documented for project gscratch, which is
+                      NOT backed up or archival; /gscratch/scrubbed alone
+                      auto-deletes files inactive for 21 days (10 TB per-user
+                      limit, not guaranteed)
     network policy:   outbound works from compute nodes (probe job 37641229)
-    containers:       Apptainer 1.5.2     secret delivery: TBD (see §3)
+    containers:       Apptainer 1.5.2     secret delivery: waiting on human (§3)
     required module:  gcc/12.3.0 (Pyright Node runtime needs libatomic.so.1)
     cache TLS:        SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
 
-### 1b. Tillicum facts (2.1 discovery — still open)
+### 1b. Tillicum facts (public policy discovery, 2026-07-25)
 
-    Fill this block during Tillicum environment discovery (T008). Until then, treat
-    the Tillicum lines above as placeholders; do not assume Klone partition/GPU names.
+    scheduler:        SLURM; access is QoS-based, not partition-based; no checkpoint
+    GPUs:             192 NVIDIA H200 SXM, 141 GB each; 24 nodes, 8 GPUs per node;
+                      every compute job must request >=1 GPU
+    per-GPU bundle:   8 CPU cores and approximately 200 GB system RAM
+    standard QoS:     normal (24 h, 16 GPUs/job, 48 concurrent GPUs/user),
+                      debug (1 h, 1 GPU, 1 job), interactive (8 h, 2 GPUs, 2 jobs)
+    special QoS:      long (7 d, 16 GPUs/job), wide (24 h), urgent (3 d,
+                      64 GPUs/job); explicit access required; shared limits apply
+    billing policy:   $0.90 per raw GPU-hour; urgent is billed at 2x; the user's
+                      stated $250 credit exists, but its account attachment,
+                      expiration, and enforced budget are waiting on human/account
+                      access and must be checked with hyakusage before a real job
+    storage policy:   GPFS; 10 GB home and 1 TB project/lab storage with daily
+                      snapshots (7 retained); scrubbed allows up to 100 TB/user and
+                      purges files after 60 days of inactivity
+    containers:       Apptainer; bind /gpfs; hierarchical Lmod modules
+    network policy:   waiting on direct compute-node probe
+    secret delivery:  waiting on human (see §3)
+    direct discovery: tillicum.hyak.uw.edu is reachable, but non-interactive login
+                      correctly refused on 2026-07-25 because Tillicum requires 2FA;
+                      account-specific sinfo/sacctmgr/hyakstorage/hyakusage probes
+                      therefore remain pending
+
+Sources for these facts are the 2026-07-25 outputs of `sinfo`,
+`scontrol show partition`, `sacctmgr show qos`, `hyakalloc`, and `hyakstorage` on
+Klone, plus the current UW Research Computing Tillicum
+[architecture](https://hyak.uw.edu/docs/systems/tillicum/architecture),
+[scheduling](https://hyak.uw.edu/docs/systems/tillicum/scheduling-jobs), and
+[storage](https://hyak.uw.edu/docs/systems/tillicum/storage) documentation. A
+two-minute Klone checkpoint `nvidia-smi` probe
+(job 37665822) never started and was cancelled with zero runtime; VRAM is taken
+from the cluster's official GPU inventory instead.
 
 If compute nodes have no outbound network, API generation jobs must run on a login/DTN
 node or via the cluster's designated proxy — discover this BEFORE any paid batch.
