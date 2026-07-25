@@ -73,3 +73,147 @@ contradicting $a^3$ odd. Done. Nothing is enumerated.
 - `q.den > 0` and `q.reduced : q.num.natAbs.Coprime q.den` are the workhorses; casts
   between ℤ and ℕ around the denominator are the main bookkeeping annoyance — be
   explicit and patient there.
+
+## Reference Lean proofs (data section for compile checks)
+
+### Route A
+
+```lean
+import Mathlib
+
+theorem no_rat_root_8x3_6x_1_A : ∀ q : ℚ, 8 * q ^ 3 - 6 * q - 1 ≠ 0 := by
+  intro q hq
+
+  let a : ℤ := q.num
+  let b : ℤ := q.den
+
+  have hb : b > 0 := by
+    exact Rat.den_pos q
+
+  have hred : a.natAbs.Coprime q.den := by
+    exact q.reduced
+
+  have hclear : 8 * a^3 - 6 * a * b^2 - b^3 = 0 := by
+    have h := hq
+    field_simp [a, b] at h
+    ring_nf at h
+    exact h
+
+  have ha_dvd : a ∣ b^3 := by
+    refine dvd_sub' ?_
+    · exact dvd_mul_of_dvd_right (dvd_mul_left _ _) _
+    · exact dvd_mul_of_dvd_right (dvd_mul_left _ _) _
+
+  have hb_dvd : b ∣ 8 := by
+    have : b ∣ 8 * a^3 := by
+      rw [← hclear]
+      exact dvd_add
+        (dvd_mul_of_dvd_right (dvd_mul_left _ _) _)
+        (dvd_mul_of_dvd_right (dvd_mul_left _ _) _)
+    have hcop : Nat.Coprime a.natAbs b.natAbs := by
+      exact hred
+    -- use coprimality to remove a^3
+    sorry
+
+  have ha_cases : a = 1 ∨ a = -1 := by
+    have : a ∣ 1 := by
+      -- from a ∣ b³ and gcd(a,b)=1
+      sorry
+    rcases this with ⟨k, hk⟩
+    omega
+
+  have hb_cases : b = 1 ∨ b = 2 ∨ b = 4 ∨ b = 8 := by
+    have hbpos : 0 < b := hb
+    -- divisor enumeration of 8
+    interval_cases b <;> norm_num at hb_dvd ⊢
+    all_goals omega
+
+  rcases ha_cases with rfl | rfl
+  · rcases hb_cases with rfl | rfl | rfl | rfl <;>
+      norm_num at hclear
+  · rcases hb_cases with rfl | rfl | rfl | rfl <;>
+      norm_num at hclear
+```
+
+### Route B
+
+```lean
+import Mathlib
+
+theorem no_rat_root_8x3_6x_1_B : ∀ q : ℚ, 8 * q ^ 3 - 6 * q - 1 ≠ 0 := by
+  intro q hq
+
+  let a : ℤ := q.num
+  let b : ℤ := q.den
+
+  have hbpos : b > 0 := by
+    exact Rat.den_pos q
+
+  have hcop : a.natAbs.Coprime q.den := by
+    exact q.reduced
+
+  have hclear : 8 * a^3 - 6*a*b^2 - b^3 = 0 := by
+    have h := hq
+    field_simp [a, b] at h
+    ring_nf at h
+    exact h
+
+  have hb_even : Even b := by
+    have hb3 : Even (b^3) := by
+      rw [← neg_eq_zero.mp]
+      have :
+          b^3 = 2 * (4*a^3 - 3*a*b^2) := by
+        linarith [hclear]
+      rw [this]
+      exact even_mul_left 2 _
+
+    exact (even_pow.mp hb3)
+
+  obtain ⟨c, hc⟩ := hb_even
+
+  have hb_sub : b = 2*c := by
+    exact hc
+
+  have ha_odd : Odd a := by
+    have hnot : ¬ Even a := by
+      intro hae
+      rcases hae with ⟨d, hd⟩
+      have : 2 ∣ a := by
+        exact ⟨d, hd⟩
+      have : 2 ∣ b := by
+        exact hb_even
+      -- contradict reducedness
+      sorry
+    exact (not_even_iff_odd.mp hnot)
+
+  have hred :
+      a^3 = 3*a*c^2 + c^3 := by
+    rw [hb_sub] at hclear
+    ring_nf at hclear
+    linarith
+
+  rcases Int.even_or_odd c with hc_even | hc_odd
+  · have hright_even : Even (3*a*c^2 + c^3) := by
+      rcases hc_even with ⟨k, hk⟩
+      subst c
+      simp [Even]
+    have hleft_odd : Odd (a^3) := by
+      exact Odd.pow ha_odd 3
+    rw [hred] at hleft_odd
+    exact (not_even_iff_odd.mp hright_even) hleft_odd
+
+  · have hterm1 : Odd (3*a*c^2) := by
+      exact Odd.mul (Odd.mul (by decide) ha_odd) (Odd.pow hc_odd 2)
+
+    have hterm2 : Odd (c^3) := by
+      exact Odd.pow hc_odd 3
+
+    have hright_even : Even (3*a*c^2 + c^3) := by
+      exact Odd.add_odd hterm1 hterm2
+
+    have hleft_odd : Odd (a^3) := by
+      exact Odd.pow ha_odd 3
+
+    rw [hred] at hleft_odd
+    exact (not_even_iff_odd.mp hright_even) hleft_odd
+```

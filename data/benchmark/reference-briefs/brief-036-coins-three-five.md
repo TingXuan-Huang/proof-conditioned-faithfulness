@@ -59,3 +59,80 @@ minimality, not an inductive hypothesis.
   residue class. Also neither A nor B.
 - `omega` may discharge arithmetic SIDE goals (e.g. `8 ≤ n − 3`), but must not produce
   the existential witnesses for the main goal.
+
+## Reference Lean proofs (data section for compile checks)
+
+### Route A
+
+```lean
+import Mathlib
+
+theorem coins_three_five_A (n : ℕ) (hn : 8 ≤ n) : ∃ a b : ℕ, n = 3 * a + 5 * b := by
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      by_cases hle : n ≤ 10
+      · have hcases : n = 8 ∨ n = 9 ∨ n = 10 := by
+          omega
+        rcases hcases with rfl | rfl | rfl
+        · exact ⟨1, 1, by norm_num⟩
+        · exact ⟨3, 0, by norm_num⟩
+        · exact ⟨0, 2, by norm_num⟩
+      · have hn11 : 11 ≤ n := by
+          omega
+        have hsmall : 8 ≤ n - 3 := by
+          omega
+        obtain ⟨a, b, hab⟩ := ih (n - 3) (by omega) hsmall
+        refine ⟨a + 1, b, ?_⟩
+        omega
+```
+
+### Route B
+
+```lean
+import Mathlib
+
+theorem coins_three_five_B (n : ℕ) (hn : 8 ≤ n) : ∃ a b : ℕ, n = 3 * a + 5 * b := by
+  by_contra h
+  push_neg at h
+
+  let P : ℕ → Prop := fun k =>
+    8 ≤ k ∧ ¬ ∃ a b : ℕ, k = 3 * a + 5 * b
+
+  have hP : ∃ k, P k := by
+    refine ⟨n, hn, ?_⟩
+    intro hrep
+    rcases hrep with ⟨a, b, hab⟩
+    exact h a b hab
+
+  have hc : P (Nat.find hP) := Nat.find_spec hP
+
+  have hc11 : 11 ≤ Nat.find hP := by
+    by_contra hlt
+    have hle : Nat.find hP ≤ 10 := by
+      omega
+    have hcases : Nat.find hP = 8 ∨ Nat.find hP = 9 ∨ Nat.find hP = 10 := by
+      omega
+    rcases hcases with h8 | h9 | h10
+    · subst h8
+      exact hc.2 ⟨1, 1, by norm_num⟩
+    · subst h9
+      exact hc.2 ⟨3, 0, by norm_num⟩
+    · subst h10
+      exact hc.2 ⟨0, 2, by norm_num⟩
+
+  have hlt : Nat.find hP - 3 < Nat.find hP := by
+    omega
+
+  have hnot : ¬ P (Nat.find hP - 3) := Nat.find_min hP hlt
+
+  have hsmall : P (Nat.find hP - 3) := by
+    constructor
+    · omega
+    · intro hrep
+      rcases hrep with ⟨a, b, hab⟩
+      apply hc.2
+      refine ⟨a + 1, b, ?_⟩
+      omega
+
+  exact hnot hsmall
+```

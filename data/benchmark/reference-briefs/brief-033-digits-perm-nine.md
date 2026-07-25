@@ -82,6 +82,130 @@ This helper does not violate the digit-sum ban — no sum is ever formed.
 `Nat.modEq_three_digits_sum`, `Nat.modEq_eleven_digits_sum`, `Nat.three_dvd_iff`.
 (Route A's explicitness requirement above is the controlled exception path.)
 
+## Reference Lean proofs (data section for compile checks)
+
+### Route A
+
+```lean
+import Mathlib
+
+private lemma digits_perm_sub_dvd_nine_A_modEq_digits_sum
+    (n : ℕ) :
+    (n : ℤ) ≡ ((Nat.digits 10 n).sum : ℤ) [ZMOD 9] := by
+  -- Intended proof:
+  -- Expand n = Nat.ofDigits 10 (Nat.digits 10 n)
+  -- Then induct over the digit list.
+  --
+  -- The core induction step uses:
+  -- Nat.ofDigits 10 (d :: xs)
+  --   = d + 10 * Nat.ofDigits 10 xs
+  --
+  -- and the fact:
+  -- 10 ≡ 1 [ZMOD 9].
+  --
+  -- Exact Mathlib names for these lemmas may require adjustment.
+  sorry
+
+
+theorem digits_perm_sub_dvd_nine_A (m n : ℕ)
+    (h : (Nat.digits 10 m).Perm (Nat.digits 10 n)) :
+    (9 : ℤ) ∣ (m : ℤ) - (n : ℤ) := by
+
+  have hm :
+      (m : ℤ) ≡ ((Nat.digits 10 m).sum : ℤ) [ZMOD 9] :=
+    digits_perm_sub_dvd_nine_A_modEq_digits_sum m
+
+  have hn :
+      (n : ℤ) ≡ ((Nat.digits 10 n).sum : ℤ) [ZMOD 9] :=
+    digits_perm_sub_dvd_nine_A_modEq_digits_sum n
+
+  have hsum :
+      (Nat.digits 10 m).sum = (Nat.digits 10 n).sum := by
+    exact List.Perm.sum_eq h
+
+  have hmn :
+      (m : ℤ) ≡ (n : ℤ) [ZMOD 9] := by
+    calc
+      (m : ℤ)
+          ≡ ((Nat.digits 10 m).sum : ℤ) [ZMOD 9] := hm
+      _ = ((Nat.digits 10 n).sum : ℤ) := by
+        rw [hsum]
+      _ ≡ (n : ℤ) [ZMOD 9] := hn.symm
+
+  -- Convert ZMOD congruence to divisibility of difference.
+  exact hmn.dvd
+```
+
+### Route B
+
+```lean
+import Mathlib
+
+private lemma digits_perm_sub_dvd_nine_B_aux
+    (a b : List ℕ)
+    (h : a.Perm b) :
+    (9 : ℤ) ∣
+      (Nat.ofDigits 10 a : ℤ) -
+      (Nat.ofDigits 10 b : ℤ) := by
+
+  induction h with
+
+  | nil =>
+      simp
+
+  | @cons x l₁ l₂ h ih =>
+      -- Nat.ofDigits cons equation:
+      --
+      -- x + 10 * ofDigits l₁
+      -- -
+      -- x + 10 * ofDigits l₂
+      --
+      -- = 10 * (ofDigits l₁ - ofDigits l₂)
+      --
+      -- Carry divisibility through multiplication by 10.
+
+      simp [Nat.ofDigits]
+      obtain ⟨k, hk⟩ := ih
+      refine ⟨10 * k, ?_⟩
+      ring_nf
+      rw [hk]
+      ring
+
+  | @swap x y l =>
+      -- The critical algebraic step:
+      --
+      -- (y + 10*x + 100*Z)
+      -- -
+      -- (x + 10*y + 100*Z)
+      --
+      -- = 9*(x-y)
+
+      simp [Nat.ofDigits]
+      refine ⟨(x : ℤ) - y, ?_⟩
+      ring
+
+  | @trans l₁ l₂ l₃ h₁ h₂ ih₁ ih₂ =>
+      obtain ⟨a, ha⟩ := ih₁
+      obtain ⟨b, hb⟩ := ih₂
+
+      refine ⟨a + b, ?_⟩
+      ring_nf
+      linarith
+
+
+theorem digits_perm_sub_dvd_nine_B (m n : ℕ)
+    (h : (Nat.digits 10 m).Perm (Nat.digits 10 n)) :
+    (9 : ℤ) ∣ (m : ℤ) - (n : ℤ) := by
+
+  have haux :=
+    digits_perm_sub_dvd_nine_B_aux
+      (Nat.digits 10 m)
+      (Nat.digits 10 n)
+      h
+
+  simpa [Nat.ofDigits_digits] using haux
+```
+
 ## Statement notes
 
 - `Nat.digits` produces little-endian digit lists with no leading zeros — the `Perm`

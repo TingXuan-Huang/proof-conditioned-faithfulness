@@ -96,3 +96,180 @@ Parity is never mentioned; the argument works verbatim for $\log_3 5$.
   `q.num > 0` — handle the num/den bookkeeping explicitly.
 - The `Real.logb` bridge is the hard formal work and it is SHARED — spend your care
   there once, then keep each route's divergent half short and unmistakable.
+
+## Reference Lean proofs (data section for compile checks)
+
+### Route A
+
+```lean
+import Mathlib
+
+private lemma irrational_logb_two_three_A_bridge
+    (p d : ℕ) (hp : 0 < p) (hd : 0 < d)
+    (h : Real.logb 2 3 = (p : ℝ) / (d : ℝ)) :
+    (2 : ℕ) ^ p = 3 ^ d := by
+  have hlog2 : Real.log 2 ≠ 0 := by
+    have : 0 < Real.log 2 := Real.log_pos (by norm_num)
+    linarith
+
+  have hdR : (d : ℝ) ≠ 0 := by
+    exact_mod_cast (Nat.ne_of_gt hd)
+
+  rw [Real.logb] at h
+
+  field_simp [hlog2, hdR] at h
+
+  have hpow :
+      Real.log ((2 : ℝ) ^ p) = Real.log ((3 : ℝ) ^ d) := by
+    rw [Real.log_pow, Real.log_pow]
+    nlinarith
+
+  have hpos2 : 0 < (2 : ℝ) ^ p := by positivity
+  have hpos3 : 0 < (3 : ℝ) ^ d := by positivity
+
+  have hreal :
+      (2 : ℝ) ^ p = (3 : ℝ) ^ d := by
+    exact (Real.strictMonoOn_log.injOn hpos2 hpos3 hpow)
+
+  exact_mod_cast hreal
+
+
+theorem irrational_logb_two_three_A : Irrational (Real.logb 2 3) := by
+  rw [Irrational]
+  rintro ⟨x, hx⟩
+
+  have hxpos : 0 < x := by
+    rw [← hx]
+    exact Real.logb_pos (by norm_num) (by norm_num)
+
+  let p : ℕ := x.num.toNat
+  let d : ℕ := x.den
+
+  have hp : 0 < p := by
+    dsimp [p]
+    exact_mod_cast x.pos_num.2
+
+  have hd : 0 < d := by
+    dsimp [d]
+    exact Rat.den_pos x
+
+  have hrat :
+      Real.logb 2 3 = (p : ℝ) / (d : ℝ) := by
+    dsimp [p, d]
+    rw [← hx]
+    norm_num [Rat.cast_def]
+
+  have hpow :
+      (2 : ℕ) ^ p = 3 ^ d :=
+    irrational_logb_two_three_A_bridge p d hp hd hrat
+
+  have heven : Even ((2 : ℕ) ^ p) := by
+    refine ⟨2 ^ (p - 1), ?_⟩
+    cases p with
+    | zero =>
+        simp at hp
+    | succ p =>
+        simp [pow_succ, Nat.mul_assoc, Nat.mul_left_comm,
+          Nat.mul_comm]
+
+  have hodd : Odd ((3 : ℕ) ^ d) := by
+    exact Odd.pow (by decide) d
+
+  have hcontra : ¬(Even ((2 : ℕ) ^ p) ∧ Odd ((2 : ℕ) ^ p)) := by
+    exact Nat.not_even_and_odd
+
+  apply hcontra
+  constructor
+  · exact heven
+  · rw [hpow]
+    exact hodd
+```
+
+### Route B
+
+```lean
+import Mathlib
+
+private lemma irrational_logb_two_three_B_bridge
+    (p d : ℕ) (hp : 0 < p) (hd : 0 < d)
+    (h : Real.logb 2 3 = (p : ℝ) / (d : ℝ)) :
+    (2 : ℕ) ^ p = 3 ^ d := by
+  have hlog2 : Real.log 2 ≠ 0 := by
+    have : 0 < Real.log 2 := Real.log_pos (by norm_num)
+    linarith
+
+  have hdR : (d : ℝ) ≠ 0 := by
+    exact_mod_cast (Nat.ne_of_gt hd)
+
+  rw [Real.logb] at h
+
+  field_simp [hlog2, hdR] at h
+
+  have hpow :
+      Real.log ((2 : ℝ) ^ p) = Real.log ((3 : ℝ) ^ d) := by
+    rw [Real.log_pow, Real.log_pow]
+    nlinarith
+
+  have hpos2 : 0 < (2 : ℝ) ^ p := by positivity
+  have hpos3 : 0 < (3 : ℝ) ^ d := by positivity
+
+  have hreal :
+      (2 : ℝ) ^ p = (3 : ℝ) ^ d := by
+    exact (Real.strictMonoOn_log.injOn hpos2 hpos3 hpow)
+
+  exact_mod_cast hreal
+
+
+theorem irrational_logb_two_three_B : Irrational (Real.logb 2 3) := by
+  rw [Irrational]
+  rintro ⟨x, hx⟩
+
+  have hxpos : 0 < x := by
+    rw [← hx]
+    exact Real.logb_pos (by norm_num) (by norm_num)
+
+  let p : ℕ := x.num.toNat
+  let d : ℕ := x.den
+
+  have hp : 0 < p := by
+    dsimp [p]
+    exact_mod_cast x.pos_num.2
+
+  have hd : 0 < d := by
+    dsimp [d]
+    exact Rat.den_pos x
+
+  have hrat :
+      Real.logb 2 3 = (p : ℝ) / (d : ℝ) := by
+    dsimp [p, d]
+    rw [← hx]
+    norm_num [Rat.cast_def]
+
+  have hpow :
+      (2 : ℕ) ^ p = 3 ^ d :=
+    irrational_logb_two_three_B_bridge p d hp hd hrat
+
+  have hcop :
+      Nat.Coprime ((2 : ℕ) ^ p) ((3 : ℕ) ^ d) := by
+    exact (Nat.Coprime.pow (by decide : Nat.Coprime 2 3) p d)
+
+  have hcop_self :
+      Nat.Coprime ((2 : ℕ) ^ p) ((2 : ℕ) ^ p) := by
+    rw [hpow] at hcop
+    exact hcop
+
+  have hone :
+      (2 : ℕ) ^ p = 1 := by
+    exact (Nat.coprime_self_iff_one.mp hcop_self)
+
+  have hge :
+      2 ≤ (2 : ℕ) ^ p := by
+    cases p with
+    | zero =>
+        simp at hp
+    | succ p =>
+        simp [pow_succ]
+        omega
+
+  omega
+```

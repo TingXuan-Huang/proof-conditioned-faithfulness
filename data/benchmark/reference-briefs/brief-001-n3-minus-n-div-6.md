@@ -61,3 +61,188 @@ Either way the theorem statement itself stays exactly as frozen above.
   sweep (e.g. `Int.emod_emod_of_dvd` + `decide`-style residue enumeration, or
   `omega` after a `n % 6` split). That is a third route, not A or B.
 - `decide` / `norm_num` discharging the main divisibility goal directly.
+
+## Reference Lean proofs (data section for compile checks)
+
+### Route A
+
+```lean
+import Mathlib
+
+theorem six_dvd_cube_sub_self_A (n : ℤ) : (6 : ℤ) ∣ n ^ 3 - n := by
+
+  have hfactor : n ^ 3 - n = (n - 1) * n * (n + 1) := by
+
+    ring
+
+
+
+  rw [hfactor]
+
+
+
+  have h2 : (2 : ℤ) ∣ (n - 1) * n * (n + 1) := by
+
+    rcases Int.even_or_odd n with hn | hn
+
+    · -- n is even
+
+      rcases hn with ⟨k, hk⟩
+
+      refine ⟨k * ((n - 1) * (n + 1)), ?_⟩
+
+      simp [hk]
+
+      ring
+
+    · -- n is odd, so n-1 is even
+
+      have : Even (n - 1) := by
+
+        rcases hn with ⟨k, hk⟩
+
+        refine ⟨k - 1, ?_⟩
+
+        omega
+
+      rcases this with ⟨k, hk⟩
+
+      refine ⟨k * (n * (n + 1)), ?_⟩
+
+      simp [hk]
+
+      ring
+
+
+
+  have h3 : (3 : ℤ) ∣ (n - 1) * n * (n + 1) := by
+
+    rcases Int.mod_three_eq_zero_or_one_or_two n with hn | hn | hn
+
+    · refine ⟨((n - 1) * n * (n + 1)) / 3, ?_⟩
+
+      omega
+
+    · have : 3 ∣ n - 1 := by
+
+        omega
+
+      rcases this with ⟨k, hk⟩
+
+      refine ⟨k * n * (n + 1), ?_⟩
+
+      rw [hk]
+
+      ring
+
+    · have : 3 ∣ n + 1 := by
+
+        omega
+
+      rcases this with ⟨k, hk⟩
+
+      refine ⟨(n - 1) * n * k, ?_⟩
+
+      rw [hk]
+
+      ring
+
+
+
+  exact (Int.Coprime.mul_dvd_of_dvd_of_dvd (by norm_num) h2 h3)
+
+
+
+```
+
+### Route B
+
+```lean
+import Mathlib
+
+theorem six_dvd_cube_sub_self_B (n : ℤ) : (6 : ℤ) ∣ n ^ 3 - n := by
+
+  induction n using Int.induction_on with
+
+  | hz =>
+
+      simp
+
+  | hp k ih =>
+
+      have h_even : Even (k * (k + 1)) := by
+
+        exact Int.even_mul_succ_self k
+
+
+
+      have h3 : (6 : ℤ) ∣ 3 * k * (k + 1) := by
+
+        rcases h_even with ⟨m, hm⟩
+
+        refine ⟨m, ?_⟩
+
+        rw [hm]
+
+        ring
+
+
+
+      have hsum :
+
+          (6 : ℤ) ∣ (k ^ 3 - k) + 3 * k * (k + 1) :=
+
+        dvd_add ih h3
+
+
+
+      convert hsum using 1 <;> ring
+
+
+
+  | hn k ih =>
+
+      have h_even : Even (k * (k - 1)) := by
+
+        rcases Int.even_or_odd k with hk | hk
+
+        · rcases hk with ⟨m, hm⟩
+
+          refine ⟨m * (k - 1), ?_⟩
+
+          rw [hm]
+
+          ring
+
+        · rcases hk with ⟨m, hm⟩
+
+          refine ⟨m * k, ?_⟩
+
+          rw [hm]
+
+          ring
+
+
+
+      have h3 : (6 : ℤ) ∣ 3 * k * (k - 1) := by
+
+        rcases h_even with ⟨m, hm⟩
+
+        refine ⟨m, ?_⟩
+
+        rw [hm]
+
+        ring
+
+
+
+      have hsum :
+
+          (6 : ℤ) ∣ (k ^ 3 - k) - 3 * k * (k - 1) :=
+
+        dvd_sub ih h3
+
+
+
+      convert hsum using 1 <;> ring
+```
