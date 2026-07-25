@@ -453,6 +453,8 @@ model name, condition key, prompt text, or sample index; agreement statistics re
 hand-computed values on a 10-item fixture to 4 decimals.
 
 ### 2.4 Model slate smoke tests → freeze
+Weights download/storage/serving/sampling mechanics: RUNBOOK §3b (HF cache on project
+storage, pinned commit hashes, vllm serve template, one-request-per-sample rule).
 Per candidate model: minimal end-to-end run (1 theorem, 1 condition, 1 sample), record
 model ID/revision/quantization/context/GPU/cost. Freeze the slate (≥1 per category)
 with licenses and decoding configs. Record failed integrations rather than omitting.

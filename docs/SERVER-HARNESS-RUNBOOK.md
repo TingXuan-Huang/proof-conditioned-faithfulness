@@ -18,18 +18,24 @@ Everything here is written for a stateless agent arriving with only a fresh clon
     API budget:       $20 credit on the frontier provider (exact provider name to be
                       confirmed by the user; enough for pilot + cheap-provider core;
                       top-up decision deferred until post-pilot cost data)
-    reserve cluster:  Klone (UW Hyak) — user has access. Decision 2026-07-24: do NOT
-                      set up both clusters; Tillicum is the single canonical host
-                      (one environment in the freeze manifest). Escalate to Klone
-                      only if, at the 2.4 smoke test, projected core burn exceeds
-                      ~$150 of remaining Tillicum credits. Escalation order:
-                      (1) move CPU-only Lean checking to Klone (free CPU, biggest
-                      saver); (2) move local vLLM inference to Klone's preemptible
-                      checkpoint partition (safe: resume + deterministic request IDs
-                      lose only the in-flight sample). PAID API jobs never run on a
-                      preemptible partition. If Klone is activated, run 2.1 discovery
-                      there too and record a second facts block + which artifacts
-                      came from which cluster in every run manifest.
+    test cluster:     Klone (UW Hyak) — DEV/TEST host (user decision 2026-07-24,
+                      superseding the earlier reserve-only policy). Split of duties:
+                      - Klone: environment bring-up rehearsal, S1-S5 development and
+                        tests, Lean toolchain + statement checks during development,
+                        mock runs, first vLLM serving trials. Free/idle capacity;
+                        preemption is fine for all of this.
+                      - Tillicum: THE canonical experiment host. Everything that
+                        enters the paper — slate smoke (2.4), pilot, core, and every
+                        artifact referenced by a freeze manifest — runs here and
+                        only here. One environment in the manifest.
+                      Run 2.1 discovery on BOTH; keep two facts blocks. The Lean
+                      toolchain pin and uv.lock make the two environments match by
+                      construction; verify with the same smoke fixtures on each.
+                      PAID API jobs never run on a preemptible partition anywhere.
+                      Cost escape hatch unchanged: if Tillicum credits run low
+                      post-2.4, CPU-only Lean checking (and, last resort, local
+                      inference) may move to Klone ckpt — recorded per-run in the
+                      manifest if it ever happens.
 
 If compute nodes have no outbound network, API generation jobs must run on a login/DTN
 node or via the cluster's designated proxy — discover this BEFORE any paid batch.
@@ -63,6 +69,53 @@ places values in a private env file OUTSIDE the repo (e.g. ~/.proof_faithfulness
 chmod 600); job scripts `source` it. Never `#SBATCH --export=ALL` from an interactive
 shell with secrets loaded; use `--export=NONE` and source inside the script. Never echo
 env in logs (`env`, `printenv` are banned in job scripts).
+
+## 3b. Model weights — download, storage, serving, sampling
+
+The design lives in PLAN.md S4 (adapters, request math, decoding defaults); this
+section is the operational recipe the S4 code and job scripts implement.
+
+**Storage.** Never let weights land in `$HOME` (quota death). Point the HF cache at
+project/scratch storage and record the path in §1:
+
+    export HF_HOME=/path/to/project/storage/hf     # in job scripts AND ~/.bashrc
+    # Size planning (bf16): 7B ≈ 15 GB, 32B ≈ 65 GB, 72B ≈ 145 GB + vLLM overhead.
+
+**Download (one-time per model, BEFORE any GPU job).** Downloads run on a node with
+outbound network (login/DTN if compute nodes are offline — §1 network check):
+
+    hf download <org/model> --revision <FULL_COMMIT_HASH>
+    # older CLI name: huggingface-cli download
+
+Rules: (1) the revision is the exact commit hash pinned in configs/models/*.yaml —
+never a branch name; the same hash goes into EXPERIMENT-SPEC §3 at slate freeze.
+(2) Gated models (e.g. Llama family) need an HF token — secret NAME `HF_TOKEN`,
+value via §3; prefer ungated models to avoid the license-acceptance detour.
+(3) After download, verify: `hf download` again is a no-op and prints the cache
+path; record that path in the model's config entry.
+
+**Serving (one model per GPU job, per §7).** Template:
+
+    vllm serve <org/model> --revision <FULL_COMMIT_HASH> \
+        --port 8000 --max-model-len 16384 \
+        # sized per model/GPU; add --tensor-parallel-size N for multi-GPU models
+    # On offline compute nodes, after pre-downloading:
+    export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+
+The harness waits for `GET /health` (vLLM readiness) before sending requests, and
+the job script shuts the server down when the batch completes (serve → run → stop).
+First-time bring-up sanity check, before any slate smoke: one hand-written prompt
+via `curl localhost:8000/v1/chat/completions`, eyeball the output.
+
+**Sampling (how S4 requests map onto the server).** All decoding parameters come
+from configs (defaults temperature 0.2 / top_p 1.0 / max 8192 tokens; a specialized
+prover's documented recipe OVERRIDES these and is recorded as a deviation —
+Decision Log). Each sample_index is its OWN request with its own deterministic
+request ID — never use the API's n>1 batching, which would break the
+one-artifact-per-request-ID invariant. Pass `seed` per request where the backend
+supports it (vLLM does; best-effort determinism — record it, don't rely on it).
+Prover prompt templates (e.g. DeepSeek-Prover/Kimina chat formats) are part of the
+hashed prompt template, not ad-hoc code.
 
 ## 4. SLURM job lifecycle
 
