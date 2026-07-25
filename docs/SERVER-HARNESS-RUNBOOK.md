@@ -37,6 +37,22 @@ Everything here is written for a stateless agent arriving with only a fresh clon
                       inference) may move to Klone ckpt — recorded per-run in the
                       manifest if it ever happens.
 
+### 1a. Klone facts (2.1 discovery, 2026-07-24)
+
+    scheduler:        SLURM               account: stf
+    CPU partitions:   compute, compute-hugemem, cpu-g2, cpu-g2-mem2x
+    allocated GPUs:   gpu-l40 (8), gpu-l40s (10)
+    storage:          GPFS; project quota and purge policy still TBD
+    network policy:   outbound works from compute nodes (probe job 37641229)
+    containers:       Apptainer 1.5.2     secret delivery: TBD (see §3)
+    required module:  gcc/12.3.0 (Pyright Node runtime needs libatomic.so.1)
+    cache TLS:        SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
+
+### 1b. Tillicum facts (2.1 discovery — still open)
+
+    Fill this block during Tillicum environment discovery (T008). Until then, treat
+    the Tillicum lines above as placeholders; do not assume Klone partition/GPU names.
+
 If compute nodes have no outbound network, API generation jobs must run on a login/DTN
 node or via the cluster's designated proxy — discover this BEFORE any paid batch.
 
@@ -47,6 +63,7 @@ gets purged mid-experiment — check quota/purge policy first).
 
     git clone <remote-url> proof-conditioned-faithfulness
     cd proof-conditioned-faithfulness
+    module load gcc/12.3.0                  # libatomic.so.1 for Pyright's Node runtime
     uv sync --frozen --all-extras            # exact versions from committed uv.lock
     uv run python -c "import proof_faithfulness; print(proof_faithfulness.__version__)"
                                              # expect: 0.1.0
@@ -54,7 +71,8 @@ gets purged mid-experiment — check quota/purge policy first).
     # Lean toolchain (pinned; PLAN.md 2.2):
     curl -sSf https://elan.lean-lang.org/elan-init.sh | sh -s -- -y   # if elan absent
     lake --version                           # expect the lean-toolchain pinned version
-    lake exe cache get                       # Mathlib cache for the pinned commit
+    SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt lake exe cache get
+                                             # Mathlib cache for the pinned commit
     lake build                               # expect: no errors, cache-served
 
 `uv sync --frozen` fails if uv.lock is missing or stale — that means the clone is bad

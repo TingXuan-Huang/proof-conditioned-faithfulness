@@ -13,9 +13,12 @@ dependencies = [
     "tqdm>=4.66",
 ]
 
+[project.scripts]
+proof-faithfulness = "proof_faithfulness.cli:app"
+
 # The `proof-faithfulness` console script is added in stage S1 (PLAN.md Part 2.3)
-# together with src/proof_faithfulness/cli.py — no entry point is declared until the
-# module exists, so `uv sync --frozen` works from this bare scaffold.
+# together with src/proof_faithfulness/cli.py. Script entries do not affect the frozen
+# dependency resolution.
 
 [project.optional-dependencies]
 analysis = [
@@ -46,3 +49,5 @@ line-length = 100
 [tool.pyright]
 pythonVersion = "3.12"
 include = ["src", "tests"]
+venvPath = "."
+venv = ".venv"

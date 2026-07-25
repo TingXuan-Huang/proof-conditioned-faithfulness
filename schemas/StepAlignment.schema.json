@@ -1,0 +1,72 @@
+{
+  "additionalProperties": false,
+  "description": "Alignment between one or more informal steps and formal evidence.",
+  "properties": {
+    "alignment_type": {
+      "enum": [
+        "one_to_one",
+        "one_to_many",
+        "many_to_one",
+        "implicit"
+      ],
+      "title": "Alignment Type",
+      "type": "string"
+    },
+    "confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "explanation": {
+      "minLength": 1,
+      "title": "Explanation",
+      "type": "string"
+    },
+    "formal_evidence_ids": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Formal Evidence Ids",
+      "type": "array"
+    },
+    "informal_step_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Informal Step Ids",
+      "type": "array"
+    },
+    "proof_id": {
+      "enum": [
+        "A",
+        "B"
+      ],
+      "title": "Proof Id",
+      "type": "string"
+    },
+    "request_id": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "proof_id",
+    "informal_step_ids",
+    "alignment_type",
+    "confidence",
+    "explanation"
+  ],
+  "title": "StepAlignment",
+  "type": "object"
+}

@@ -1,0 +1,253 @@
+{
+  "$defs": {
+    "SamplingOption": {
+      "additionalProperties": false,
+      "description": "One provider-specific scalar sampling option.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "SamplingOption",
+      "type": "object"
+    },
+    "SamplingParameters": {
+      "additionalProperties": false,
+      "description": "Exact model sampling settings that affect request identity.",
+      "properties": {
+        "extra": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SamplingOption"
+          },
+          "title": "Extra",
+          "type": "array"
+        },
+        "max_tokens": {
+          "exclusiveMinimum": 0,
+          "title": "Max Tokens",
+          "type": "integer"
+        },
+        "seed": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Seed"
+        },
+        "temperature": {
+          "minimum": 0,
+          "title": "Temperature",
+          "type": "number"
+        },
+        "top_p": {
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Top P",
+          "type": "number"
+        }
+      },
+      "required": [
+        "temperature",
+        "top_p",
+        "max_tokens"
+      ],
+      "title": "SamplingParameters",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Immutable, fully identified model generation request.",
+  "properties": {
+    "backend_config_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Backend Config Hash",
+      "type": "string"
+    },
+    "capability_flags": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Capability Flags",
+      "type": "array"
+    },
+    "chat_template_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Chat Template Hash",
+      "type": "string"
+    },
+    "condition": {
+      "minLength": 1,
+      "title": "Condition",
+      "type": "string"
+    },
+    "import_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Import Hash",
+      "type": "string"
+    },
+    "model_adapter": {
+      "minLength": 1,
+      "title": "Model Adapter",
+      "type": "string"
+    },
+    "model_id": {
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "model_key": {
+      "minLength": 1,
+      "title": "Model Key",
+      "type": "string"
+    },
+    "model_revision": {
+      "minLength": 1,
+      "title": "Model Revision",
+      "type": "string"
+    },
+    "prompt_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Prompt Hash",
+      "type": "string"
+    },
+    "prompt_name": {
+      "minLength": 1,
+      "title": "Prompt Name",
+      "type": "string"
+    },
+    "prompt_version": {
+      "minLength": 1,
+      "title": "Prompt Version",
+      "type": "string"
+    },
+    "proof_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Proof Hash",
+      "type": "string"
+    },
+    "proof_id": {
+      "anyOf": [
+        {
+          "enum": [
+            "A",
+            "B"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Proof Id"
+    },
+    "provider": {
+      "minLength": 1,
+      "title": "Provider",
+      "type": "string"
+    },
+    "rendered_prompt_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Rendered Prompt Hash",
+      "type": "string"
+    },
+    "request_id": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "requested_seed": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Requested Seed"
+    },
+    "sample_index": {
+      "minimum": 0,
+      "title": "Sample Index",
+      "type": "integer"
+    },
+    "sampling": {
+      "$ref": "#/$defs/SamplingParameters"
+    },
+    "schema_version": {
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "statement_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Statement Hash",
+      "type": "string"
+    },
+    "theorem_id": {
+      "minLength": 1,
+      "title": "Theorem Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "theorem_id",
+    "statement_hash",
+    "import_hash",
+    "condition",
+    "proof_id",
+    "proof_hash",
+    "prompt_name",
+    "prompt_version",
+    "prompt_hash",
+    "rendered_prompt_hash",
+    "chat_template_hash",
+    "model_adapter",
+    "provider",
+    "model_key",
+    "model_id",
+    "model_revision",
+    "backend_config_hash",
+    "sampling",
+    "sample_index",
+    "request_id"
+  ],
+  "title": "GenerationRequest",
+  "type": "object"
+}

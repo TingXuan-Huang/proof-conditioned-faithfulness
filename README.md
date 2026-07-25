@@ -14,10 +14,16 @@ Author: Tingxuan Huang.
 
 ## Status
 
-Planning complete; implementation not yet started. See
-[docs/plans/active/](docs/plans/active/) for the execution plan, human decision plan,
-and the 30-pair curation plan. Progress checklist lives in the
-[human plan](docs/plans/active/proof-conditioned-faithfulness-HUMAN_PLAN.md) §2.
+Implementation is underway. The reproducible Python 3.12 and Lean 4.15/Mathlib
+environment is built, and S1 (data contracts, deterministic IDs, artifact storage, and
+CLI scaffolding) has passed its exit checks. Offline S4 model/prover adapter work is in
+progress. Formal experiment readiness remains at Gate P: the human still needs to
+approve the five pilot pairs before the ordered P → S → C → A gates can advance.
+
+See [the active implementation plan](docs/plans/active/PLAN.md) for the current
+checklist. Under its skip-don't-stall rule, fixture, mock, and tooling work continues
+while human review is pending; no draft candidate or mock-model result is treated as a
+frozen benchmark or real model smoke test.
 
 ## Orientation
 
@@ -27,6 +33,7 @@ and the 30-pair curation plan. Progress checklist lives in the
 
 ## Setup
 
-Not yet initialized (no environment, no Lean toolchain pinned). Follow
-[coding-standard/PROJECT_SETUP.md](coding-standard/PROJECT_SETUP.md) when
-implementation starts — remaining steps are tracked in [todo.md](todo.md).
+The environment uses the committed `uv.lock`, Python 3.12, Lean 4.15.0, and Mathlib tag
+`v4.15.0` (commit `9837ca9d65d9de6fad1ef4381750ca688774e608`). Server-specific setup and verification
+commands are in the [server harness runbook](docs/SERVER-HARNESS-RUNBOOK.md); remaining
+one-time project tasks are tracked in [todo.md](todo.md).

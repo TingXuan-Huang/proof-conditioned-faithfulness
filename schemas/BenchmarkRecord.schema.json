@@ -1,0 +1,477 @@
+{
+  "$defs": {
+    "ContaminationMetadata": {
+      "additionalProperties": false,
+      "description": "Estimated likelihood that a theorem/proof pair appears in training data.",
+      "properties": {
+        "rationale": {
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "risk": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "unknown"
+          ],
+          "title": "Risk",
+          "type": "string"
+        }
+      },
+      "required": [
+        "risk",
+        "rationale"
+      ],
+      "title": "ContaminationMetadata",
+      "type": "object"
+    },
+    "DependencyEdge": {
+      "additionalProperties": false,
+      "description": "Directed dependency from one informal proof step to another.",
+      "properties": {
+        "predecessor_step_id": {
+          "minLength": 1,
+          "title": "Predecessor Step Id",
+          "type": "string"
+        },
+        "successor_step_id": {
+          "minLength": 1,
+          "title": "Successor Step Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "predecessor_step_id",
+        "successor_step_id"
+      ],
+      "title": "DependencyEdge",
+      "type": "object"
+    },
+    "LeanTheoremSpec": {
+      "additionalProperties": false,
+      "description": "Exact trusted Lean statement and pinned toolchain metadata.",
+      "properties": {
+        "declaration": {
+          "minLength": 1,
+          "title": "Declaration",
+          "type": "string"
+        },
+        "declaration_name": {
+          "minLength": 1,
+          "title": "Declaration Name",
+          "type": "string"
+        },
+        "expected_axioms": {
+          "default": [
+            "propext",
+            "Classical.choice",
+            "Quot.sound"
+          ],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Expected Axioms",
+          "type": "array"
+        },
+        "import_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Import Hash",
+          "type": "string"
+        },
+        "imports": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Imports",
+          "type": "array"
+        },
+        "lean_version": {
+          "minLength": 1,
+          "title": "Lean Version",
+          "type": "string"
+        },
+        "mathlib_commit": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Mathlib Commit",
+          "type": "string"
+        },
+        "mathlib_tag": {
+          "minLength": 1,
+          "title": "Mathlib Tag",
+          "type": "string"
+        },
+        "reference_file_paths": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference File Paths",
+          "type": "array"
+        },
+        "statement_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Statement Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "declaration_name",
+        "declaration",
+        "statement_hash",
+        "imports",
+        "import_hash",
+        "lean_version",
+        "mathlib_tag",
+        "mathlib_commit"
+      ],
+      "title": "LeanTheoremSpec",
+      "type": "object"
+    },
+    "MetadataEntry": {
+      "additionalProperties": false,
+      "description": "One immutable scalar metadata entry.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "MetadataEntry",
+      "type": "object"
+    },
+    "ProofStep": {
+      "additionalProperties": false,
+      "description": "One stable informal proof step and its semantic roles.",
+      "properties": {
+        "predecessor_step_ids": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Predecessor Step Ids",
+          "type": "array"
+        },
+        "roles": {
+          "items": {
+            "enum": [
+              "strategy_essential",
+              "logically_necessary",
+              "explanatory"
+            ],
+            "type": "string"
+          },
+          "title": "Roles",
+          "type": "array"
+        },
+        "step_id": {
+          "minLength": 1,
+          "title": "Step Id",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "step_id",
+        "text",
+        "roles"
+      ],
+      "title": "ProofStep",
+      "type": "object"
+    },
+    "ProofVariant": {
+      "additionalProperties": false,
+      "description": "One of the two human-curated proof strategies for a theorem.",
+      "properties": {
+        "acceptable_formal_refinements": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Acceptable Formal Refinements",
+          "type": "array"
+        },
+        "annotator_approvals": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Annotator Approvals",
+          "type": "array"
+        },
+        "corruption_metadata": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/MetadataEntry"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Corruption Metadata"
+        },
+        "dependency_edges": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DependencyEdge"
+          },
+          "title": "Dependency Edges",
+          "type": "array"
+        },
+        "incompatible_signatures": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Incompatible Signatures",
+          "type": "array"
+        },
+        "informal_proof": {
+          "minLength": 1,
+          "title": "Informal Proof",
+          "type": "string"
+        },
+        "paraphrase": {
+          "minLength": 1,
+          "title": "Paraphrase",
+          "type": "string"
+        },
+        "proof_id": {
+          "enum": [
+            "A",
+            "B"
+          ],
+          "title": "Proof Id",
+          "type": "string"
+        },
+        "reference_lean_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reference Lean File"
+        },
+        "required_signatures": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Required Signatures",
+          "type": "array"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/ProofStep"
+          },
+          "title": "Steps",
+          "type": "array"
+        },
+        "strategy_labels": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Strategy Labels",
+          "type": "array"
+        }
+      },
+      "required": [
+        "proof_id",
+        "informal_proof",
+        "paraphrase",
+        "strategy_labels",
+        "required_signatures",
+        "incompatible_signatures",
+        "steps"
+      ],
+      "title": "ProofVariant",
+      "type": "object"
+    },
+    "SourceCitation": {
+      "additionalProperties": false,
+      "description": "One source used to adapt a benchmark theorem or proof.",
+      "properties": {
+        "locator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Locator"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "url": {
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "url"
+      ],
+      "title": "SourceCitation",
+      "type": "object"
+    },
+    "SourceMetadata": {
+      "additionalProperties": false,
+      "description": "Provenance and adaptation metadata for a benchmark record.",
+      "properties": {
+        "adaptation_notes": {
+          "minLength": 1,
+          "title": "Adaptation Notes",
+          "type": "string"
+        },
+        "citations": {
+          "items": {
+            "$ref": "#/$defs/SourceCitation"
+          },
+          "title": "Citations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "citations",
+        "adaptation_notes"
+      ],
+      "title": "SourceMetadata",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A theorem with exactly two strategy-distinct informal proof variants.",
+  "properties": {
+    "contamination": {
+      "$ref": "#/$defs/ContaminationMetadata"
+    },
+    "difficulty": {
+      "minLength": 1,
+      "title": "Difficulty",
+      "type": "string"
+    },
+    "domain": {
+      "minLength": 1,
+      "title": "Domain",
+      "type": "string"
+    },
+    "informal_statement": {
+      "minLength": 1,
+      "title": "Informal Statement",
+      "type": "string"
+    },
+    "lean": {
+      "$ref": "#/$defs/LeanTheoremSpec"
+    },
+    "proof_variants": {
+      "maxItems": 2,
+      "minItems": 2,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/ProofVariant"
+        },
+        {
+          "$ref": "#/$defs/ProofVariant"
+        }
+      ],
+      "title": "Proof Variants",
+      "type": "array"
+    },
+    "schema_version": {
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/SourceMetadata"
+    },
+    "split": {
+      "enum": [
+        "pilot",
+        "core",
+        "extension"
+      ],
+      "title": "Split",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "human_approved",
+        "frozen"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "theorem_id": {
+      "minLength": 1,
+      "title": "Theorem Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "theorem_id",
+    "domain",
+    "difficulty",
+    "source",
+    "contamination",
+    "informal_statement",
+    "lean",
+    "proof_variants",
+    "split",
+    "status"
+  ],
+  "title": "BenchmarkRecord",
+  "type": "object"
+}

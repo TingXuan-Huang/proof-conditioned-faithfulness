@@ -9,10 +9,9 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
 - [ ] T001 (P2) Fill out `coding-standard/PROJECT_ARTIFACTS.md` — declare this project's
       load-bearing artifacts (human-owned; candidates per HUMAN_PLAN: the benchmark
       pair data, the Lean statement translations, the strategy-labeling prompts).
-- [ ] T002 (P2) Complete PROJECT_SETUP.md remaining steps when implementation starts:
-      conda env + environment.yml, setup.py + `pip install -e .`, LICENSE, CITATION.
-- [ ] T003 (P2) Pin Lean/Mathlib toolchain version before any Lean statement work
-      (JOINT-CURATION-PLAN requires statements to elaborate in a pinned environment).
+- [ ] T002 (P2) Add LICENSE and CITATION files. The active plan's uv + hatchling setup
+      supersedes the generic PROJECT_SETUP.md conda + setup.py defaults; the committed
+      `uv.lock` and editable uv environment are already operational.
 - [ ] T006 (P2) Freeze the five analysis decisions (primary estimand, sample pairing,
       ambiguity coding, uncertainty method, agreement threshold) — full explanations and
       examples in docs/design-docs/analysis-decisions-pending.md. Deferred by design:
@@ -24,6 +23,11 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       verify exact name for configs). Still needed: partitions, GPU types/VRAM,
       storage quota + purge policy, compute-node network policy, secret delivery.
       Record answers in docs/SERVER-HARNESS-RUNBOOK.md §1. Blocks 2.4 slate freeze.
+- [ ] T011 (P0) Implement and independently review the generation-layer paid-request
+      permit: require a machine-readable approval record, per-run USD ceiling, atomic
+      spend reservation, and fail-closed retry accounting before enabling any frontier
+      API transport. The adapter currently refuses every frontier request. Blocks paid
+      smoke tests and Gate A for frontier models.
 - [ ] T010 (P3) Rerun the LOW-CONTAMINATION discovery round — the round-3 agent
       hunting deliberately obscure A/B pairs died on a session usage limit
       (2026-07-24, resets 7pm PT) with zero results. Why it matters: the pool of 44
@@ -43,9 +47,22 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
 - [ ] T007 (P2) Recruit a second qualified annotator (or explicitly preregister a
       single-annotator + LLM-judge fallback). Blocks the annotation phase.
       See analysis-decisions-pending.md §(f).
+- [ ] T015 (P3) Resolve the repository's 100-column Ruff setting versus the coding
+      standard's mandatory 80-column rule in a dedicated formatting-policy change; do
+      not mix a whole-tree reformat into behavioral pipeline work.
 
 ## Done
 
+- [x] T014 (P0) 2026-07-25 — Reviewed overwrite-capable CLI paths for the stakes gate.
+      Schema export refuses changed files without explicit `--force`, writes atomically,
+      and has overwrite tests; model inspection performs no writes or network access and
+      never reads secret values.
+- [x] T013 (P1) 2026-07-25 — Recorded the hand-computed model-cost sanity check:
+      `(10 input × $2 + 4 output × $4) / 1,000,000 = $0.000036`; the unit test matches.
+
+- [x] T003 (P2) 2026-07-24 — Pinned Lean 4.15.0 and Mathlib tag v4.15.0 at commit
+      9837ca9d65d9de6fad1ef4381750ca688774e608; cache retrieval and `lake build` passed
+      on the Klone dev/test host.
 - [x] T004 (P3) 2026-07-24 — GitHub remote added and pushed:
       https://github.com/TingXuan-Huang/proof-conditioned-faithfulness.git (commit f79f0ac).
       GitHub is now the single source of truth; laptop→server file copying prohibited.

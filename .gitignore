@@ -21,6 +21,9 @@ __pycache__/
 .venv/
 .ipynb_checkpoints/
 
+# Lean build products and downloaded dependencies
+.lake/
+
 # OS
 .DS_Store
 

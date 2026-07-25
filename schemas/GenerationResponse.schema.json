@@ -1,0 +1,114 @@
+{
+  "$defs": {
+    "JsonValue": {},
+    "TokenUsage": {
+      "additionalProperties": false,
+      "description": "Provider-reported token counts.",
+      "properties": {
+        "input_tokens": {
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "input_tokens",
+        "output_tokens"
+      ],
+      "title": "TokenUsage",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Successful response artifact written at responses/<request_id>/response.json.",
+  "properties": {
+    "completed_at": {
+      "format": "date-time",
+      "title": "Completed At",
+      "type": "string"
+    },
+    "finish_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Finish Reason"
+    },
+    "harness_git_commit": {
+      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+      "title": "Harness Git Commit",
+      "type": "string"
+    },
+    "latency_s": {
+      "minimum": 0,
+      "title": "Latency S",
+      "type": "number"
+    },
+    "model_key": {
+      "minLength": 1,
+      "title": "Model Key",
+      "type": "string"
+    },
+    "raw": {
+      "$ref": "#/$defs/JsonValue"
+    },
+    "request_id": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "revision": {
+      "minLength": 1,
+      "title": "Revision",
+      "type": "string"
+    },
+    "schema_version": {
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "usage": {
+      "$ref": "#/$defs/TokenUsage"
+    },
+    "usd_cost": {
+      "minimum": 0,
+      "title": "Usd Cost",
+      "type": "number"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "model_key",
+    "revision",
+    "raw",
+    "text",
+    "usage",
+    "usd_cost",
+    "latency_s",
+    "started_at",
+    "completed_at",
+    "harness_git_commit"
+  ],
+  "title": "GenerationResponse",
+  "type": "object"
+}

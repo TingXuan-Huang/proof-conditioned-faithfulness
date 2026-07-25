@@ -1,0 +1,110 @@
+{
+  "$defs": {
+    "DerivedMetric": {
+      "additionalProperties": false,
+      "description": "One named theorem- or sample-level metric.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "DerivedMetric",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Derived sample evaluation without overwriting source judgments.",
+  "properties": {
+    "ambiguity_lower": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Ambiguity Lower",
+      "type": "number"
+    },
+    "ambiguity_upper": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Ambiguity Upper",
+      "type": "number"
+    },
+    "compiled": {
+      "title": "Compiled",
+      "type": "boolean"
+    },
+    "derived_metrics": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/DerivedMetric"
+      },
+      "title": "Derived Metrics",
+      "type": "array"
+    },
+    "request_id": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_judgment_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Source Judgment Ids",
+      "type": "array"
+    },
+    "step_coverage": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Step Coverage",
+      "type": "number"
+    },
+    "strategy_match": {
+      "enum": [
+        "match_A",
+        "match_B",
+        "mixed_or_alternative",
+        "unresolved"
+      ],
+      "title": "Strategy Match",
+      "type": "string"
+    },
+    "utilization_state": {
+      "enum": [
+        "used",
+        "partially_used",
+        "unused",
+        "unresolved"
+      ],
+      "title": "Utilization State",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "compiled",
+    "strategy_match",
+    "step_coverage",
+    "utilization_state",
+    "ambiguity_lower",
+    "ambiguity_upper",
+    "source_judgment_ids"
+  ],
+  "title": "CounterfactualEvaluation",
+  "type": "object"
+}

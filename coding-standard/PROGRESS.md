@@ -10,6 +10,24 @@ just the code.
 
 ---
 
+### 2026-07-25 — Build reproducible S1 contracts and S4 adapter foundation
+
+- **Tier:** library
+- **File(s):** `src/proof_faithfulness/{schema,ids,artifacts,cli}.py`,
+  `src/proof_faithfulness/models/`, `tests/unit/`, Lean scaffold, emitted schemas.
+- **What:** Added frozen data contracts, response-affecting request identities,
+  crash-recoverable checksummed run storage, CLI inspection/export, normative model-slate
+  configuration, deterministic mock inference, OpenAI-compatible local transport, and
+  commit-bound ProofBridge/ProofFlow subprocess adapters.
+- **Why:** Implements S1 and the reviewed adapter foundation required before S2-S5 can
+  share stable request, artifact, and model boundaries.
+- **How it works:** Every response-affecting input, including prompt bytes, slate key,
+  model identity, and backend configuration, is hashed. Paid frontier transport remains
+  fail-closed pending T011; external pipelines are revision-checked, environment-
+  allowlisted, size-bounded, and process-group isolated.
+- **Reused pattern or new one?** Reuses Pydantic contracts and content-addressed atomic
+  artifacts; introduces the common `ModelAdapter` boundary used by the generation lane.
+
 ### 2026-07-24 — Add fourth proof-strategy discovery batch
 
 - **Tier:** exploratory

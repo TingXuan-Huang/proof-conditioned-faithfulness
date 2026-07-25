@@ -1,0 +1,134 @@
+{
+  "additionalProperties": false,
+  "description": "Normalized output from the trusted Lean checking boundary.",
+  "properties": {
+    "axioms": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Axioms",
+      "type": "array"
+    },
+    "declaration_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Declaration Name"
+    },
+    "elaboration_status": {
+      "minLength": 1,
+      "title": "Elaboration Status",
+      "type": "string"
+    },
+    "exit_code": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Exit Code"
+    },
+    "extraction_status": {
+      "minLength": 1,
+      "title": "Extraction Status",
+      "type": "string"
+    },
+    "failure_category": {
+      "minLength": 1,
+      "title": "Failure Category",
+      "type": "string"
+    },
+    "parser_status": {
+      "minLength": 1,
+      "title": "Parser Status",
+      "type": "string"
+    },
+    "peak_memory_mb": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Peak Memory Mb"
+    },
+    "prohibited_token_findings": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Prohibited Token Findings",
+      "type": "array"
+    },
+    "request_id": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "statement_hash_matches": {
+      "title": "Statement Hash Matches",
+      "type": "boolean"
+    },
+    "stderr_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Stderr Path"
+    },
+    "stdout_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Stdout Path"
+    },
+    "wall_time_seconds": {
+      "minimum": 0,
+      "title": "Wall Time Seconds",
+      "type": "number"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "statement_hash_matches",
+    "extraction_status",
+    "parser_status",
+    "elaboration_status",
+    "wall_time_seconds",
+    "failure_category"
+  ],
+  "title": "LeanCheckResult",
+  "type": "object"
+}

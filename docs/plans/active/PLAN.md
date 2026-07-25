@@ -86,10 +86,28 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
       Pool complete at 001-044 pending human review; discovery paused.
 - [ ] YYYY-MM-DD: Human review of candidate pool; first 5 pilot pairs approved.
 - [ ] YYYY-MM-DD: Full curation metadata (signatures, steps, paraphrases) for pilot 5.
-- [ ] YYYY-MM-DD: GitHub remote created and pushed (T004; repo name/visibility pending).
-- [ ] YYYY-MM-DD: Server access confirmed; environment discovery run (T008).
-- [ ] YYYY-MM-DD: Server scaffold: uv + Lean/Mathlib pinned; curated statements
-      parse-verified; pilot reference proofs drafted and human-approved.
+- [x] 2026-07-24: GitHub remote created and pushed (T004); GitHub is now the source of
+      truth for server checkouts.
+- [x] 2026-07-24: Server access confirmed; environment discovery run. Compute-node
+      outbound network works; project quota/purge policy and secret delivery remain T008.
+- [x] 2026-07-24: Server scaffold built: frozen Python 3.12 uv environment, Lean 4.15.0,
+      and Mathlib v4.15.0 at commit 9837ca9d65d9de6fad1ef4381750ca688774e608;
+      Mathlib cache retrieval and `lake build` passed on the Klone dev/test host.
+- [x] 2026-07-25: S1 complete. Data contracts and JSON Schemas, deterministic request
+      IDs, the content-addressed artifact store, and CLI scaffolding passed unit tests,
+      Ruff, Pyright, CLI help, and Lean build checks.
+- [x] 2026-07-25: S4 adapter foundation complete: strict model configs, deterministic
+      mock inference, OpenAI-compatible local-vLLM transport, and ProofBridge/ProofFlow
+      JSON subprocess wrappers pass offline adversarial smoke tests. The package builds
+      as wheel/sdist; the preflight suite passes 91 tests, Ruff, Pyright, and `lake build`.
+      Independent review approved the adapter scope after identity, cardinality, size,
+      secret, and process-lifecycle hardening.
+- [ ] 2026-07-25: S4 remains in progress: generation orchestration, atomic budget
+      permits, retry/resume integration, and complete mock run-directory tests remain.
+      This does not pass S4, Gate C, or Gate A; real-model smoke checks have not run.
+- [ ] YYYY-MM-DD: Gate S inputs ready: the five human-approved pilot statements and all
+      ten reference proofs parse/elaborate, compile, pass the axiom audit, and receive
+      human approval.
 - [ ] YYYY-MM-DD: Implementation stages S1-S5 complete with tests (Part 2.3).
 - [ ] YYYY-MM-DD: Model slate smoke-tested and frozen (needs API keys on server).
 - [ ] YYYY-MM-DD: Pilot smoke slice (1-2 theorems) run and human-reviewed.
@@ -120,6 +138,11 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
   a one-liner on ℤ/mod candidates (001, 003) — signatures must key on discriminating
   lemmas, not tactic names alone.
   Evidence: candidate files 001/003 Review notes (discovery-agent caveats).
+- 2026-07-24: This cluster's base image lacks `libatomic.so.1`, which Pyright's
+  bootstrapped Node runtime requires; `module load gcc/12.3.0` supplies it. Mathlib's
+  static curl also needs `SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt` or every cache
+  request fails with an OpenSSL "unregistered scheme" error. Both are recorded in the
+  server runbook. Evidence: Pyright loader error; cache retry downloaded 5,826/5,826.
 - (Carried from 2026-07-22:) closest verified systems — ProofBridge, ProofFlow,
   StepProof, RobustPABench — none compare two complete correct strategy-distinct proofs
   for the same fixed theorem; Lean 4.15 is the provisional interoperability version
@@ -379,8 +402,9 @@ StepAlignment, CounterfactualEvaluation. Reject duplicate IDs, dangling edges, c
 ≠2 variants, missing hashes, identical A/B signatures. Deterministic request ID:
 
     request_id = sha256(schema_version | theorem_id | statement_hash | import_hash |
-                        condition | proof_hash | prompt_hash | chat_template_hash |
-                        model_revision | sampling_json | sample_index)
+                        condition | proof_hash | prompt_hash | rendered_prompt_hash |
+                        chat_template_hash | model_key | model_id | model_revision |
+                        backend_config_hash | sampling_json | sample_index)
 
 Content-addressed run directories (outputs/runs/<run_id>/ with manifest.json,
 environment.json, requests.jsonl, responses/<request_id>/, lean/<request_id>/,
@@ -543,12 +567,10 @@ PROGRESS.md and the coding-standard §8 process-reflection report (proposal-only
 
 | ID | Item | Owner | Blocks |
 |---|---|---|---|
-| T004 | GitHub remote: name + visibility, push | Tingxuan | Part 2 start |
 | T006 | Freeze analysis decisions (a)-(e) + dispute rule (g) post-pilot | Tingxuan | Core run (2.6) |
 | T007 | Second annotator (or preregistered fallback) | Tingxuan | Annotation (3.1) |
-| T008 | Server details: SLURM confirmed; still need partitions/GPU/quota/network/secret delivery → RUNBOOK §1 | Tingxuan | Part 2 start |
-| T009 | Retire old plans + git commit all pending work (after user signs off on this rework) | Tingxuan | Repo hygiene |
-| — | Candidate pool review (001-015 + incoming Codex batches) | Tingxuan | Pilot curation |
+| T008 | Tillicum partitions/GPU/quota/network/secret delivery → RUNBOOK §1 | Tingxuan | Real-model smoke/freeze (2.4) |
+| — | Candidate pool review (001-044) | Tingxuan | Gate P / pilot curation |
 | — | VERICODEGEN fallback go/no-go | Tingxuan | ~Sept 5 |
 
 ## Outcomes & Retrospective
