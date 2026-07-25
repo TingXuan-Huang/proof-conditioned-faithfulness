@@ -47,9 +47,26 @@ is multiplied by 10); `swap` of two adjacent digits changes the value by a multi
 ($ab - ba$ pattern: $10\cdot x + y - (10\cdot y + x) = 9(x - y)$); `trans` chains
 divisibilities. The digit sum is never formed.
 
+**Implementation note (expected proof shape).** Do NOT try to induct on `h` with the
+goal still phrased in `m`/`n`. Prove a helper lemma generalized over lists —
+
+```lean
+lemma digits_perm_sub_dvd_nine_B_aux (a b : List ℕ) (h : a.Perm b) :
+    (9 : ℤ) ∣ (Nat.ofDigits 10 a : ℤ) - (Nat.ofDigits 10 b : ℤ)
+```
+
+— by `induction h`, then finish the main theorem by rewriting with
+`Nat.ofDigits_digits` and applying the helper. Recall that `List.Perm.swap` is
+HEADS-ONLY: `Perm (y :: x :: l) (x :: y :: l)`. It never swaps arbitrary positions —
+arbitrary rearrangements are generated through `cons`/`trans` — so the four cases are:
+`nil` (0), `cons` (difference = 10·(X−Y), use the cons equation once per side),
+`swap` (two cons unfoldings per side give (y + 10x + 100·Z) − (x + 10y + 100·Z)
+= 9(x−y)), `trans` (chain via `dvd_sub`-style algebra / `sub_add_sub_cancel`).
+This helper does not violate the digit-sum ban — no sum is ever formed.
+
 **Must appear (B):**
 - Structural induction over the `List.Perm` hypothesis (`induction h` with
-  nil/cons/swap/trans cases) — or, equivalently explicit, the displacement-sum argument.
+  nil/cons/swap/trans cases), in the generalized helper-lemma form above.
 - A visible algebraic step producing the factor 9 (the swap case's $9(x-y)$, or
   $10^c - 1 = 9\cdot\Sigma 10^j$).
 - Place-value arithmetic through `Nat.ofDigits 10 (d :: L) = d + 10 * Nat.ofDigits 10 L`
