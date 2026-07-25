@@ -10,6 +10,36 @@ just the code.
 
 ---
 
+### 2026-07-25 — Compile-screen submitted pilot reference proofs
+
+- **Tier:** exploratory
+- **File(s):** `data/benchmark/reference-briefs/brief-{001,033,036,040,041}-*.md` and
+  ignored artifacts under `outputs/reference-proof-checks/`.
+- **What:** Extracted ten submitted Route A/B Lean blocks verbatim and exercised them in
+  offline CPU SLURM jobs. The normative 120-second run persisted bounded timeout/error
+  results; combined job `37699980` showed the runner continues across bad declarations;
+  extended job `37700033` completed in 19:35 with a 1,200-second warm-up allowance and
+  600 seconds per route. One route (`036-A`) compiled without `sorry`; nine produced Lean
+  errors. Three (`033-A`, `041-A`, `041-B`) also contain `sorry`.
+- **Why:** Validates that the prototype compilation pipeline accepts a submitted valid
+  proof, rejects or diagnoses invalid inputs, continues after failures, and persists
+  evidence. Repairing the submitted proofs is outside this prototype checkpoint.
+- **How it works:** Each route is written to a fresh file, compiled with Lean 4.15.0,
+  and followed by `#print axioms`. The extended limits are diagnostic only and do not
+  change S2's normative 120-second contract. `036-A` reported only allowed axioms
+  (`propext`, `Quot.sound`). No network, paid API request, GPU, or model download was used.
+- **Reused pattern or new one?** Reuses the S2 fresh-file and axiom-audit boundary; adds
+  an operational cache warm-up/extended-time diagnostic for umbrella `import Mathlib`
+  on GPFS-backed compute nodes.
+- **Review findings:** No pipeline correctness bug was found. The apparent widespread
+  failures in the first run were cold/full-import timeouts; larger diagnostic bounds
+  resolved all of them into one success and nine concrete Lean errors. Proof errors are
+  recorded as data and skipped, not repaired.
+- **Verification:** Runner passed Ruff; batch scripts passed `bash -n` (ShellCheck is not
+  installed). SLURM `37700033` finished `COMPLETED`, exit `0`, on `n3447`; summary was
+  `total=10 compiles=1 no_sorry_and_compiles=1`. Results are in
+  `outputs/reference-proof-checks/37700033/results.json`.
+
 ### 2026-07-25 — Complete fixture-backed S1-S5 engineering checkpoint
 
 - **Tier:** exploratory

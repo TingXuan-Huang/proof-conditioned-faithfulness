@@ -58,11 +58,20 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
       passed with zero errors after the fix and `module load gcc/12.3.0`. `lake build`
       passed with one non-fatal unused-variable warning. This checkpoint does not claim
       an unobserved post-fix full-pytest rerun.
+- [x] 2026-07-25: All ten submitted reference routes for the proposed pilot-5 were
+      exercised by the offline SLURM compile harness. Normative 120-second fresh-process
+      checks exposed seven cold/full-`Mathlib` timeouts; diagnostic job `37700033` used a
+      separate 1,200-second warm-up and 600-second per-route ceiling without changing the
+      S2 contract, completed in 19:35, and resolved every timeout. `036-A` compiled with
+      no `sorry` and only allowed axioms (`propext`, `Quot.sound`); nine routes produced
+      persisted Lean errors, and `033-A`, `041-A`, and `041-B` also contain `sorry`.
+      These are data outcomes and are not repaired under the prototype policy.
 - [ ] 2026-07-25: waiting on human: Gate P approval of exactly five pilot pairs. The
       proposed 001/033/036/040/041 set remains draft and is not promoted here.
-- [ ] 2026-07-25: waiting on human: generated Lean reference proofs for
-      001/033/036/040/041, followed by human faithfulness approval; until then Gate S is
-      open and all S2/S3 evidence is fixture-only.
+- [ ] 2026-07-25: waiting on human: faithfulness approval and any decision to replace
+      the nine non-compiling submitted reference routes. Gate S remains open. Real-proof
+      compile evidence now exists for all ten routes; S3 remains to be run only on the
+      compiling `036-A` route before the T016 report is complete.
 - [ ] 2026-07-25: waiting on human: S3 workshop metric choice. Explicit-step
       utilization remains the provisional implementation; full graph extraction is not
       frozen.

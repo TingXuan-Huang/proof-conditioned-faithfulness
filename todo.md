@@ -48,11 +48,15 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
 - [ ] T015 (P3) Resolve the repository's 100-column Ruff setting versus the coding
       standard's mandatory 80-column rule in a dedicated formatting-policy change; do
       not mix a whole-tree reformat into behavioral pipeline work.
-- [ ] T016 (P0) Pending human input: process the generated Lean reference proofs for
-      pilot candidates 001/033/036/040/041 as they arrive. Run each through the S2
-      trusted checker and S3 dependency probe and report compilation, normalized failure
-      category, axiom audit, route, and banned-lemma hits. Do not change human-owned
-      faithfulness approvals, candidate Status fields, or the proposed Gate-P slate.
+- [ ] T016 (P0) Process generated Lean reference proofs for pilot candidates
+      001/033/036/040/041. All ten submitted routes were compile-screened by extended
+      SLURM job `37700033`: `036-A` compiled without `sorry` and reported only allowed
+      axioms (`propext`, `Quot.sound`); the other nine produced persisted Lean compile
+      diagnostics and are skipped under the prototype policy rather than repaired.
+      `033-A`, `041-A`, and `041-B` additionally contain `sorry`. Remaining agent work:
+      run S3 on `036-A`, record the mechanical banned-lemma scan for all routes, and
+      publish the per-route report. Human-owned faithfulness approvals, candidate Status
+      fields, and the proposed Gate-P slate remain unchanged.
 - [ ] T017 (P1) Deferred deep review — S2/S3 trusted checking and dependency analysis.
       **Status:** pending. **Scope/stage/files:** S2-S3;
       `ProofFaithfulness/{Audit,Dependency}.lean`, `src/proof_faithfulness/lean/**`, and
@@ -61,8 +65,12 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       **Known risks/questions:** sandbox portability, diagnostic-marker provenance,
       parser/category normalization, and regressions around theorem-parameter-type lets
       versus candidate-introduced local facts. **Prerequisites:** stable pilot Lean
-      imports and representative T016 proofs. **Risk priority:** P1
-      correctness/trust-boundary review.
+      imports, representative T016 proofs, and a human-frozen S3 utilization metric.
+      **Human/code boundary:** humans define the A/B strategy signatures, decide what
+      constitutes meaningful strategy use, and resolve ambiguous proofs. The deep code
+      review only verifies that dependency evidence, deletion tests, and normalized
+      classifications implement those decisions faithfully; it cannot approve
+      faithfulness. **Risk priority:** P1 correctness/trust-boundary review.
 - [ ] T018 (P0) Deferred deep review — S4 generation, transport, and paid-spend controls.
       **Status:** pending. **Scope/stage/files:** S4; `src/proof_faithfulness/generation/**`,
       `src/proof_faithfulness/models/**`, CLI/configs, and generation tests.
@@ -82,8 +90,13 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       `coding-standard/style/research.md` pass. **Known risks/questions:** encoded or
       indirect identity leakage, conservative sample-index false positives, incomplete
       packet provenance, and agreement-statistic edge cases. **Prerequisites:** frozen
-      label schema, annotation protocol, and representative export bundles. **Risk
-      priority:** P1 research-integrity review before human annotation or paper analysis.
+      label schema, human-owned annotation rubric/protocol, and representative pilot
+      export bundles. **Human/code boundary:** humans independently label strategy use,
+      adjudicate disagreements, and decide whether evidence is scientifically meaningful.
+      The deep code review verifies blinding, label/proof association, preservation of
+      originals, queues, and agreement calculations; it does not substitute for human
+      annotation. **Risk priority:** P1 research-integrity review after the rubric is
+      stable and before core annotation or paper analysis.
 - [ ] T020 (P1) Deferred deep review — cross-stage reproducibility and recovery.
       **Status:** pending. **Scope/stage/files:** S1-S5 integration; schemas, request IDs,
       manifests, artifact/checksum stores, resume/repair lineage, CLI entrypoints, and
@@ -102,11 +115,18 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
    retain ownership of Gate-P/Gate-S approval, candidate Status fields, and freezes.
 3. **Analysis and S3 metric freeze (T006):** humans choose the workshop estimand and
    explicit-step versus full-graph utilization before inspecting core-run results.
+   Humans also own the interpretation of route signatures and ambiguous strategy use;
+   the T017 code review follows the freeze and checks only that the implementation
+   measures the chosen definition correctly.
 4. **Annotation staffing (T007):** recruit the second qualified annotator or explicitly
-   preregister the documented fallback.
+   preregister the documented fallback. Humans freeze the rubric, label proofs, and
+   adjudicate disagreements. The T019 code review follows representative pilot exports
+   and verifies blinding, provenance, and statistics rather than replacing annotation.
 5. **Process the generated Lean reference proofs for 001/033/036/040/041 (T016):**
-   generated Lean proofs may be processed incrementally through S2/S3; results are
-   reported without changing human-owned approval or Status fields.
+   compile screening is complete: one route compiles and nine are recorded data-level
+   failures that will not be repaired for this prototype. Finish S3 for `036-A` and the
+   banned-lemma report. Humans retain approval and Status ownership and may later decide
+   whether Gate S needs replacement references.
 6. **Obtain the frontier API key and run the approved API smoke slice (T012):** after
    item 5, receive the key only via the server secret-delivery path and run the API smoke
    only when the user has placed a matching machine-readable approval record.
