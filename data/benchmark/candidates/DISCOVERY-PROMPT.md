@@ -62,6 +62,15 @@ equivalent restatements of them:**
 17. hockey-stick identity Σ_{i=r}^{n} C(i,r) = C(n+1,r+1)
 18. Bernoulli's inequality (1+x)ⁿ ≥ 1+nx
 19. two-variable Cauchy–Schwarz (ac+bd)² ≤ (a²+b²)(c²+d²)
+20. # even-sized subsets = # odd-sized subsets (n ≥ 1)
+21. Σ C(n,k)² = C(2n,n)
+22. three-set inclusion–exclusion |A∪B∪C| identity
+23. odd n, permutation a of {1..n}: ∏(aᵢ−i) is even
+24. handshake lemma / # odd-degree vertices is even
+25. F_n even ⟺ 3 | n
+26. Euler duplication product ∏(1+X^(2^k)) = Σ X^j
+27. (a−b) | (aⁿ−bⁿ)
+28. (a+b) | (a^(2m+1)+b^(2m+1))
 
 Also avoid: sum of first n integers = n(n+1)/2 (Gauss pairing vs induction is
 contamination-famous), sum of first n odd numbers = n², infinitude of primes, Binet's

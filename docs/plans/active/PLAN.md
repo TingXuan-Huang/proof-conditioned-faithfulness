@@ -69,6 +69,14 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
       recommendation). Pool now 001-020. Ordered readiness gates P/S/C/A added to
       Part 2 (pilot-pair validation by every component, then API smoke, before any
       full run).
+- [x] 2026-07-24: Opus discovery round 2 (3 agents: counting, parity/invariants,
+      algebra) filed as 021-029. Claude-recommended keepers: 023 (3-set
+      inclusion-exclusion), 024 (permutation product parity), 027 (Euler binary
+      product); bench: 021, 022, 026, 029; reject-leaning: 025, 028 (verbatim
+      Mathlib lemmas — retained as library-collapse fixtures for S5). Pool now
+      001-029, all draft, awaiting human review. Discovery agents now report an
+      Automation/library caveats field (three exact-Mathlib collapses caught at
+      sourcing time this round).
 - [ ] YYYY-MM-DD: Human review of candidate pool; first 5 pilot pairs approved.
 - [ ] YYYY-MM-DD: Full curation metadata (signatures, steps, paraphrases) for pilot 5.
 - [ ] YYYY-MM-DD: GitHub remote created and pushed (T004; repo name/visibility pending).
