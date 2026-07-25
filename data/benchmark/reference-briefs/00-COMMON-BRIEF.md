@@ -2,9 +2,19 @@
 
 You are generating **reference proofs** for a research benchmark. For the candidate below
 you will produce **two complete Lean 4 proofs of the exact same statement** — one
-faithfully implementing Strategy A, one faithfully implementing Strategy B. These are
+faithfully implementing Strategy A, one faithfully implementing Strategy B. These become
 ground-truth artifacts: a proof that compiles but does not follow its named strategy is
 worthless, and worse than no proof.
+
+**Your output is NOT required to compile on first emission.** It enters a pipeline:
+server-side compilation → exact compiler diagnostics returned to you → repair rounds →
+human faithfulness review. Ground-truth status is conferred at the END of that pipeline,
+not by your prior confidence. So: when you are unsure of a current Mathlib lemma name or
+signature, emit your best attempt and list the uncertain names in Caveats. Uncertain
+names are a cheap repair iteration. The only unacceptable outputs are (a) a proof that
+abandons its route to dodge uncertainty, and (b) withholding the artifact. What "no
+fabrication" forbids is inventing *mathematical content* (fake case analyses, assumed
+unproven facts) — not writing `Real.rpow_logb` from memory and flagging it.
 
 ## Environment
 

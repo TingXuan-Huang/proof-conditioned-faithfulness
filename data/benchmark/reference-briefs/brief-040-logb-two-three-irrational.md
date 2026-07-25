@@ -15,11 +15,39 @@ theorem irrational_logb_two_three_B : Irrational (Real.logb 2 3)
 ## Shared bridge (allowed and expected in BOTH routes)
 
 Both routes start identically: if $\log_2 3 = p/q$ with $p, q \ge 1$ (positivity because
-$3 > 1$ and the base $> 1$), then $2^{p/q} = 3$, hence $2^p = 3^q$ in ℕ. Useful API:
-`Real.rpow_natCast`, `Real.rpow_logb` / `Real.logb_eq_iff_rpow_eq`, positivity lemmas,
-and cast injectivity to land in ℕ. This bridge is deliberately shared — build it as a
-common-shaped opening (or a helper lemma per proof); the routes diverge only AFTER
+$3 > 1$ and the base $> 1$), then $2^{p/q} = 3$, hence $2^p = 3^q$ in ℕ. This bridge is
+deliberately shared and is the dominant formal component — that is by design (it burdens
+neither route unfairly). Build it as a helper lemma; the routes diverge only AFTER
 `2 ^ p = 3 ^ q` is on the board.
+
+**Bridge scaffold (recommended).** The helper MUST carry the logb hypothesis — it is
+unprovable from positivity alone:
+
+```lean
+private lemma irrational_logb_two_three_bridge (p d : ℕ) (hp : 0 < p) (hd : 0 < d)
+    (h : Real.logb 2 3 = (p : ℝ) / (d : ℝ)) : (2 : ℕ) ^ p = 3 ^ d
+```
+
+Extraction, from `Irrational` unfolded: `rintro ⟨x, hx⟩` gives `x : ℚ` with
+`(x : ℝ) = Real.logb 2 3`; `Real.logb_pos (by norm_num) (by norm_num)` gives
+`0 < Real.logb 2 3`, hence `0 < x`; take `p := x.num.toNat`, `d := x.den`
+(`Rat.num_div_den` + casts give the `h` above).
+
+Two workable proof paths for the bridge — pick either:
+- **log path (fewer rpow side conditions):** `Real.logb` unfolds to
+  `Real.log 3 / Real.log 2`; from `h` and `Real.log_pos (by norm_num : (1:ℝ) < 2)`,
+  `field_simp` yields `(d : ℝ) * Real.log 3 = (p : ℝ) * Real.log 2`; rewrite both sides
+  with `Real.log_pow` backwards to get `Real.log ((3:ℝ) ^ d) = Real.log ((2:ℝ) ^ p)`;
+  conclude `(3:ℝ) ^ d = (2:ℝ) ^ p` by injectivity of log on positives
+  (`Real.log_injOn_pos`, or `Real.exp_log` applied to both positive sides); finish with
+  `exact_mod_cast`.
+- **rpow path:** `Real.rpow_logb (by norm_num) (by norm_num) (by norm_num) :
+  (2:ℝ) ^ Real.logb 2 3 = 3`; substitute `h`; raise to the `d`-th power and collapse
+  `((2:ℝ) ^ ((p:ℝ)/d)) ^ (d:ℝ)` via `← Real.rpow_natCast`, `← Real.rpow_mul
+  (by norm_num : (0:ℝ) ≤ 2)`, `div_mul_cancel₀` (`(d:ℝ) ≠ 0`); cast down to ℕ.
+
+Lemma names here are from-memory anchors — verify at compile time and flag drift in
+Caveats per the common brief; do not withhold the artifact over them.
 
 ## Strategy A — parity
 
