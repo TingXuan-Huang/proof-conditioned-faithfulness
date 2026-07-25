@@ -6,6 +6,13 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
 
 ## Open
 
+- [ ] T021 (P2) Complete the human manual review and decision checklist in
+      `docs/HUMAN-REVIEW-TODO.md`. It covers interactive reproduction, trusted Lean
+      checking, model/prover execution, paid API safeguards, blinding/annotation,
+      observed errors, and every architecture/scientific question that must be human
+      gated. All checkboxes are human-owned; agents may add evidence but never mark
+      approval.
+
 - [ ] T001 (P2) Fill out `coding-standard/PROJECT_ARTIFACTS.md` — declare this project's
       load-bearing artifacts (human-owned; candidates per HUMAN_PLAN: the benchmark
       pair data, the Lean statement translations, the strategy-labeling prompts).
@@ -108,6 +115,9 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       **Risk priority:** P1 because silent lineage drift can invalidate experiment results.
 
 ## Pending Human Inputs
+
+The actionable review order and exact manual commands are maintained in
+`docs/HUMAN-REVIEW-TODO.md` (T021). The summary below remains the compact intake queue.
 
 1. **Load-bearing artifact declarations (T001):** the owner declares the benchmark-pair,
    Lean-statement, and strategy-prompt artifacts in `PROJECT_ARTIFACTS.md`.

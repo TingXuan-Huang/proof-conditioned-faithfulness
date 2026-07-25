@@ -57,6 +57,13 @@ for a stateless agent arriving with only a fresh clone.
     containers:       Apptainer 1.5.2     secret delivery: waiting on human (§3)
     required module:  gcc/12.3.0 (Pyright Node runtime needs libatomic.so.1)
     cache TLS:        SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
+    Lean cold import: a full `import Mathlib` from GPFS exceeded 600 s on a cold
+                      cpu-g2 node in job 37696157. After repeated/same-node warming,
+                      diagnostic job 37700033 used 113 s for its explicit warm-up and
+                      roughly 94-120 s per route. Do not infer theorem invalidity from
+                      a cold-import timeout. The owner must freeze whether production
+                      S2 uses pre-warming, a higher limit, or narrower imports; current
+                      normative S2 remains 120 s and extended limits are diagnostic.
 
 ### 1b. Tillicum facts (public policy discovery, 2026-07-25)
 

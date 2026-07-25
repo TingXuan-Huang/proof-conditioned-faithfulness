@@ -66,6 +66,10 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
       no `sorry` and only allowed axioms (`propext`, `Quot.sound`); nine routes produced
       persisted Lean errors, and `033-A`, `041-A`, and `041-B` also contain `sorry`.
       These are data outcomes and are not repaired under the prototype policy.
+- [x] 2026-07-25: Consolidated the full engineering/error handoff in
+      `coding-standard/PROGRESS.md` and created the unchecked human reproduction, code
+      review, billing, and decision queue in `docs/HUMAN-REVIEW-TODO.md`. This records
+      questions for humans and does not approve any gate or change the experiment.
 - [ ] 2026-07-25: waiting on human: Gate P approval of exactly five pilot pairs. The
       proposed 001/033/036/040/041 set remains draft and is not promoted here.
 - [ ] 2026-07-25: waiting on human: faithfulness approval and any decision to replace
@@ -250,6 +254,14 @@ New decisions (2026-07-25, prototype engineering checkpoint):
   transport, a production request-order/randomization policy, and non-critical API/
   extensibility polish. None invalidates the exact fixture exits, but each must be
   revisited before its corresponding production or publish claim.
+- Reference-screening follow-up is a HUMAN GATE, not an agent-side timeout tweak. The
+  current S2 contract remains a 120-second fresh-process wall clock. Before Gate S, the
+  owner must decide whether that clock includes a cold `import Mathlib`, follows a
+  required warm-up, or increases; whether pilot imports remain the umbrella `Mathlib`
+  import or become minimal candidate-specific imports; and whether the nine failing
+  reference routes are replaced, repaired by a human, or remove their pair. Import
+  changes alter hashes and experiment identity. The 1,200-second warm-up/600-second
+  route limits used by job `37700033` are diagnostic evidence only.
 
 New decisions (2026-07-24, from the plan-restructuring walkthrough):
 

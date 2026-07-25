@@ -41,7 +41,8 @@ accordingly. Target: MATH-AI @ NeurIPS 2026 (deadline Sept 25 AoE). Full context
 | Frozen experiment parameters (check Status header!) | [docs/design-docs/EXPERIMENT-SPEC.md](docs/design-docs/EXPERIMENT-SPEC.md) |
 | Deferred analysis decisions (a)-(g), freeze gate T006 | [docs/design-docs/analysis-decisions-pending.md](docs/design-docs/analysis-decisions-pending.md) |
 | Curating the 30 A/B proof-strategy pairs | PLAN.md §1.4 + [data/benchmark/candidates/README.md](data/benchmark/candidates/README.md); sourcing prompt: [data/benchmark/candidates/DISCOVERY-PROMPT.md](data/benchmark/candidates/DISCOVERY-PROMPT.md) |
-| What humans decide vs. agents execute | [docs/plans/active/proof-conditioned-faithfulness-HUMAN_PLAN.md](docs/plans/active/proof-conditioned-faithfulness-HUMAN_PLAN.md) |
+| What humans decide vs. agents execute | [docs/plans/completed/proof-conditioned-faithfulness-HUMAN_PLAN.md](docs/plans/completed/proof-conditioned-faithfulness-HUMAN_PLAN.md) |
+| Human review commands and decision queue | [docs/HUMAN-REVIEW-TODO.md](docs/HUMAN-REVIEW-TODO.md) |
 | Accepted design decisions & repo facts | [docs/design-docs/notes.md](docs/design-docs/notes.md) |
 | What's been built / broken / fixed so far | [coding-standard/PROGRESS.md](coding-standard/PROGRESS.md) |
 | Which files the human personally understands | [coding-standard/PROJECT_ARTIFACTS.md](coding-standard/PROJECT_ARTIFACTS.md) |

@@ -10,6 +10,145 @@ just the code.
 
 ---
 
+### 2026-07-25 — Consolidate the engineering and human-review handoff
+
+- **Tier:** exploratory documentation checkpoint
+- **File(s):** repository history through `6c64f6d`,
+  `docs/plans/active/PLAN.md`, `todo.md`,
+  `docs/SERVER-HARNESS-RUNBOOK.md`, and
+  `docs/HUMAN-REVIEW-TODO.md`.
+- **What:** Reconciled the complete project history, stage evidence, known failures,
+  prototype limitations, and human-owned decisions into this progress log and a
+  standalone human checklist. This snapshot is the starting point for a future human
+  or agent; it does not promote any draft candidate or approve any gate.
+- **Why:** S1-S5 are green on fixtures, but that statement alone hides important
+  distinctions: real reference proofs mostly do not compile, some production choices
+  remain provisional, no real model/API smoke has run, and the owner still needs to
+  review load-bearing code and research decisions.
+- **How it works:** The checklist separates reproducible commands from code-reading
+  scope and from decisions. Every uncertain timeout, import, model, billing,
+  annotation, or analysis choice is left as an unchecked human gate rather than being
+  silently converted into an implementation decision.
+
+#### Historical progress reconstructed
+
+1. **Research and repository setup (2026-07-22 to 2026-07-24):** Established the
+   counterfactual proof-conditioning question, MATH-AI primary venue, Tier 1-4 condition
+   matrix, five-pair pilot/30-pair core structure, and human ownership rules. Created the
+   Python 3.12/uv and Lean 4.15.0/Mathlib v4.15.0 scaffold, active plan, runbook, coding
+   standard, schemas, and GitHub remote.
+2. **Benchmark discovery (2026-07-24):** Drafted candidates 001-044 over several
+   discovery rounds, recorded contamination and library-collapse risks, and proposed
+   001/033/036/040/041 as a pilot-5. The proposal remains unapproved. T010 retains the
+   optional low-contamination discovery rerun.
+3. **Server discovery (2026-07-24 to 2026-07-25):** Verified Klone allocations,
+   partitions, L40/L40S 48 GB GPUs, quota/purge policy, compute-node egress, Apptainer,
+   and required GCC/TLS settings. Recorded public Tillicum H200, QoS, storage, purge,
+   and billing facts. Account attachment, credit expiration, direct Tillicum egress,
+   secret delivery, and exact frontier provider remain open under T008.
+4. **S1 contracts and storage (2026-07-25):** Implemented strict Pydantic contracts,
+   generated JSON Schemas, response-sensitive deterministic request IDs, atomic and
+   checksummed artifact storage, immutable frozen runs, and the root CLI. Unit tests,
+   Ruff, Pyright, schema reproduction, and CLI help passed at the recorded checkpoint.
+5. **S2 trusted checking (2026-07-25):** Implemented fresh-process Lean compilation,
+   exact statement/header enforcement, one-body extraction, bounded execution, socket
+   isolation, normalized failures, prohibited-token checks, and an allow-listed axiom
+   audit. Seventeen integration tests covered valid, syntax/type errors, timeout,
+   changed statement, `sorry`, custom axiom, multiple blocks, trust bypass, and allowed
+   classical axioms; `lake build` passed.
+6. **S3 dependency probing (2026-07-25):** Added proof-term used-constant and local-fact
+   evidence, tactic signatures, trusted report parsing, and used/unused deletion tests.
+   Thirteen tests passed. Explicit-step utilization is provisional; choosing it versus
+   a full dependency graph remains a human decision.
+7. **S4 model and generation harness (2026-07-25):** Added strict adapter/model configs,
+   deterministic mock inference, OpenAI-compatible transport, ProofBridge/ProofFlow
+   subprocess adapters, hashed prompt rendering, exact planning, retries with stable
+   request IDs, atomic response artifacts, verified resume, repair lineage, locks,
+   aggregate budgets, and approval-bound paid requests. Offline planning reports 45
+   proof-conditioned plus 15 theorem-only Tier-1 pilot requests. The exact harness tests
+   passed 21 tests and the focused S4 suite passed 131 tests; an empty `approvals/`
+   refuses paid work.
+8. **S5 evaluation and annotation (2026-07-25):** Added deterministic signatures,
+   blinded export, immutable private mappings, independent label import, calibration,
+   disagreement/adjudication preservation, and agreement statistics. The 41-test exit
+   passed, including grep-based leakage rejection and hand-computed 10-item statistics.
+   Strategy meaning, rubric approval, labels, and adjudication remain human-owned.
+9. **Integration checkpoint (2026-07-25):** Recorded 246 passing tests plus one stale
+   `context_window` fixture failure; the fixture was fixed and its targeted regression
+   passed. Ruff passed. Pyright found one Decimal typing issue, which was fixed before a
+   zero-error rerun with `gcc/12.3.0`. `lake build` passed with one non-fatal unused
+   variable warning. A post-fix full-pytest rerun was not observed and remains a useful
+   human reproduction check.
+10. **Submitted reference screening (2026-07-25):** Stored all ten human-supplied pilot
+    Route A/B drafts without approving them. Extended offline SLURM job `37700033`
+    completed in 19:35 with no timeout: only `036-A` compiled, with no `sorry` and only
+    `propext`/`Quot.sound`; the other nine produced Lean errors. `033-A`, `041-A`, and
+    `041-B` also contain `sorry`. Proof repair is intentionally out of scope for the
+    prototype; only `036-A` is eligible for S3.
+11. **Publication state (2026-07-25):** Local proof/data and documentation commits are
+    `218d80f`, `57bafe6`, and `6c64f6d`. They are not on `origin/main`. Earlier HTTPS
+    credentials could not supply a username; a later attempt was stopped before network
+    access because execution policy treats an unverified external default-branch push
+    as high risk. No credentials or remote settings were changed.
+
+#### Error and incident ledger
+
+- **Full test run:** One fixture omitted required `context_window`. Fixed; its targeted
+  test passed. The full suite was not rerun afterward, so no broader post-fix pass is
+  claimed.
+- **Static typing:** Pyright exposed one Decimal type mismatch. Fixed; Pyright then
+  passed. Its Node runtime required `module load gcc/12.3.0` for `libatomic.so.1`.
+- **Mathlib cache TLS:** Cache retrieval initially failed until
+  `SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt` was used. The cache then retrieved
+  all 5,826 artifacts.
+- **Sandbox tooling:** `uv` and Ruff could not write their configured shared caches from
+  the restricted agent sandbox; the diagnostic runner used the existing `.venv` and
+  Ruff `--no-cache`. The system `/usr/bin/python3` was too old for
+  `from __future__ import annotations`, so the project Python 3.12 interpreter was used.
+  ShellCheck is not installed; batch scripts received `bash -n` checks only.
+- **SLURM capacity:** Job `37695207` waited on `AssocGrpMemLimit`; later normal jobs
+  intermittently waited on `AssocGrpCpuLimit`. Prototype diagnostics used permitted
+  `ckpt`/`ckpt-g2` capacity when appropriate. Preemption remains acceptable only for
+  development checks, never for paid API jobs.
+- **Cold umbrella import:** Cold `import Mathlib` on GPFS exceeded 600 seconds in job
+  `37696157`. Normative 120-second fresh-process job `37697588` therefore produced seven
+  timeouts, three direct errors, and zero accepted routes. Combined diagnostic job
+  `37699980` amortized the import and preserved errors. Extended job `37700033` used a
+  1,200-second warm-up and 600 seconds per route, resolved every timeout, and found one
+  compiling route. These diagnostic limits did not change the S2 contract.
+- **Reference 001:** Route A first fails because `omega` cannot prove an evenness goal
+  and also names unavailable constants; Route B first fails on an `Int`/`Nat` evenness
+  type mismatch.
+- **Reference 033:** Route A has `sorry` and the final `ModEq.dvd` direction is reversed;
+  Route B first fails while rewriting the `Nat.ofDigits` difference.
+- **Reference 036:** Route A compiles with allowed axioms. Route B cannot synthesize
+  `DecidablePred P` for `Nat.find`.
+- **Reference 040:** Both routes first fail by rewriting `hx` in the wrong direction and
+  contain additional rational-number/API mismatches. Neither compiles.
+- **Reference 041:** Both routes first fail at the cast from `Rat.den_pos q` to the local
+  integer denominator and contain further clearing-denominator/parity errors. Route A
+  has two `sorry` placeholders; Route B has one.
+- **Repository publication:** Push remains blocked as described above. Local commits and
+  a clean worktree preserve the checkpoint.
+
+#### Human-gated questions carried forward
+
+- Decide whether S2's 120 seconds includes a cold import, follows a required warm-up, or
+  should change. Decide separately whether canonical pilot imports remain
+  `import Mathlib` or become minimal imports; import changes affect hashes and experiment
+  identity.
+- Decide whether the nine failing reference routes are replaced, repaired by a human,
+  or removed with their candidate pair. Do not approve Gate S from the current drafts.
+- Freeze the S3 utilization metric and human interpretation of ambiguous strategy use.
+- Review the model/prover slate, revisions, decoding recipes, hardware placement, and
+  real request counts before any model execution.
+- Confirm provider, secret delivery, approval scope, request ceiling, and billing before
+  any live API call. T011's permit is a guardrail, not authorization.
+- Freeze analysis choices, annotation rubric, second-annotator plan, artifact ownership,
+  license/citation, and release/push mechanism at their documented gates.
+- Follow the unchecked tasks and exact commands in
+  `docs/HUMAN-REVIEW-TODO.md`; agents must not mark those tasks approved.
+
 ### 2026-07-25 — Compile-screen submitted pilot reference proofs
 
 - **Tier:** exploratory

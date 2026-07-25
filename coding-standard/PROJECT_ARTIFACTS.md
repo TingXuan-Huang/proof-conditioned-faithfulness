@@ -47,6 +47,11 @@ Tracks stakes gates, human-owned inputs, deferred design work, and completed che
 
 Defines cluster execution, storage, secret, approval, model-serving, and recovery rules.
 
+### docs/HUMAN-REVIEW-TODO.md
+
+Collects the unchecked human reproduction, code-review, billing, research-decision, and
+release gates with exact commands and links to observed evidence.
+
 ### docs/plans/active/PLAN.md
 
 Controls stage exits, ordered experiment gates, decisions, and the active progress log.
