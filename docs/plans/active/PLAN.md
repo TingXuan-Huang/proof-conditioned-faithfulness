@@ -264,6 +264,26 @@ gate sends work back, never forward):**
 5. Only after P, S, C, A: the pilot smoke slice, then the full pilot (2.5). The same
    smoke-slice-first rule then repeats for the core run (2.6).
 
+**Skip-don't-stall rule (decision 2026-07-24, user-directed):** human-gated items are
+ordering constraints on PAID FULL RUNS and FROZEN artifacts — they are never a reason
+for the agent to idle. When the agent reaches an unchecked human item (Gate P pilot-pair
+approval, reference-proof approval in 2.2, the S3 metric HUMAN GATE, candidate-review
+verdicts, T006/T007):
+
+- Skip it, log "waiting on human: <item>" in the Progress section, and continue with
+  every task not strictly dependent on it (all of S1-S5, fixtures, mock runs, drafts).
+- Where the plan states a provisional/default choice, adopt it, mark it PROVISIONAL in
+  the Decision Log, and proceed — but never promote a provisional choice into a frozen
+  artifact (EXPERIMENT-SPEC.md, core manifest) without the human.
+- Pipeline smoke testing does NOT wait for approved pilot pairs: run end-to-end against
+  DRAFT candidate pairs and fixtures, labeling all such outputs `calibration/` —
+  throwaway data that can never enter benchmark results.
+- The dollar gate is the one thing this rule never bypasses: mock-adapter runs are free
+  and unrestricted; any PAID request still requires an approvals/ record (RUNBOOK §8).
+  The user may pre-place a small standing approval (e.g. max_usd 20, scope
+  "smoke-tests") so API smoke tests also proceed unattended; without one, stay in mock
+  mode and log the wait.
+
 **Control plane**: how anything actually runs on the cluster — SLURM job scripts and
 lifecycle, the run-state machine (planned→approved→submitted→running→terminal, in
 state.json), worker locks against duplicate spend, provider rate limits,
