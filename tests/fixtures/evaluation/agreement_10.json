@@ -1,0 +1,102 @@
+{
+  "binary": {
+    "reference": [true, true, true, true, true, true, false, false, false, false],
+    "comparison": [true, true, true, true, false, false, true, false, false, false],
+    "hand_counts": {"tp": 4, "fp": 1, "fn": 2, "tn": 3},
+    "expected": {
+      "raw_agreement": 0.7000,
+      "gwet_ac1": 0.4059,
+      "cohen_kappa": 0.4000,
+      "precision": 0.8000,
+      "recall": 0.6667,
+      "f1": 0.7273
+    }
+  },
+  "multilabel": {
+    "reference": [
+      ["induction", "algebra"],
+      ["induction"],
+      ["algebra"],
+      [],
+      ["parity"],
+      ["induction", "parity"],
+      ["library"],
+      ["alternative"],
+      ["algebra", "parity"],
+      ["library"]
+    ],
+    "comparison": [
+      ["induction", "algebra"],
+      ["induction", "parity"],
+      [],
+      [],
+      ["parity"],
+      ["parity"],
+      ["alternative"],
+      ["alternative", "algebra"],
+      ["algebra"],
+      ["library"]
+    ],
+    "hand_jaccard_sum": 6.0,
+    "hand_micro_counts": {"tp": 8, "fp": 3, "fn": 4},
+    "expected": {
+      "mean_jaccard": 0.6000,
+      "macro_precision": 0.7667,
+      "macro_recall": 0.7000,
+      "macro_f1": 0.6933,
+      "micro_precision": 0.7273,
+      "micro_recall": 0.6667,
+      "micro_f1": 0.6957
+    }
+  },
+  "edges": {
+    "reference": [
+      [["a", "b"], ["b", "c"]],
+      [["a", "b"]],
+      [["a", "b"], ["a", "c"]],
+      [],
+      [["a", "b"]],
+      [["b", "c"]],
+      [["a", "b"], ["b", "c"]],
+      [["a", "c"]],
+      [],
+      [["c", "d"]]
+    ],
+    "comparison": [
+      [["a", "b"], ["b", "c"]],
+      [["a", "b"], ["b", "c"]],
+      [["a", "c"]],
+      [],
+      [["b", "a"]],
+      [["b", "c"]],
+      [["a", "b"]],
+      [],
+      [["d", "e"]],
+      [["c", "d"]]
+    ],
+    "hand_counts": {"tp": 7, "fp": 3, "fn": 4},
+    "expected": {"precision": 0.7000, "recall": 0.6364, "f1": 0.6667}
+  },
+  "nominal": {
+    "reference": [
+      "used", "used", "used", "used", "unused",
+      "unused", "unused", "implicit", "implicit", "unresolved"
+    ],
+    "comparison": [
+      "used", "used", "used", "unused", "unused",
+      "unused", "implicit", "implicit", "unresolved", "unresolved"
+    ],
+    "hand_counts": {
+      "agreements": 7,
+      "pooled_used": 7,
+      "pooled_unused": 6,
+      "pooled_implicit": 4,
+      "pooled_unresolved": 3
+    },
+    "expected": {
+      "raw_agreement": 0.7000,
+      "krippendorff_alpha": 0.6069,
+      "cohen_kappa": 0.5890
+    }
+  }
+}
