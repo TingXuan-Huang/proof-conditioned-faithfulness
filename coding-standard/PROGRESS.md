@@ -36,9 +36,13 @@ just the code.
   resolved all of them into one success and nine concrete Lean errors. Proof errors are
   recorded as data and skipped, not repaired.
 - **Verification:** Runner passed Ruff; batch scripts passed `bash -n` (ShellCheck is not
-  installed). SLURM `37700033` finished `COMPLETED`, exit `0`, on `n3447`; summary was
-  `total=10 compiles=1 no_sorry_and_compiles=1`. Results are in
-  `outputs/reference-proof-checks/37700033/results.json`.
+      installed). SLURM `37700033` finished `COMPLETED`, exit `0`, on `n3447`; summary was
+      `total=10 compiles=1 no_sorry_and_compiles=1`. Results are in
+      `outputs/reference-proof-checks/37700033/results.json`. Proof/data and documentation
+      commits `218d80f` and `57bafe6` were created locally. Their push was stopped before
+      network access because execution policy treats the unverified external
+      `origin/main` mutation as high risk; credentials and remote configuration were not
+      changed.
 
 ### 2026-07-25 — Complete fixture-backed S1-S5 engineering checkpoint
 
