@@ -71,6 +71,12 @@ equivalent restatements of them:**
 26. Euler duplication product ∏(1+X^(2^k)) = Σ X^j
 27. (a−b) | (aⁿ−bⁿ)
 28. (a+b) | (a^(2m+1)+b^(2m+1))
+29. p | 2^p − 2 (Fermat little, base 2)
+30. p | n²+n+1 ⇒ p = 3 or p ≡ 1 (mod 3)
+31. nonresidue × nonresidue = residue mod odd prime
+32. same digit multiset ⇒ 9 | difference
+33. every n is a sum of distinct powers of 2
+34. Nicomachus Σk³ = (Σk)²
 
 Also avoid: sum of first n integers = n(n+1)/2 (Gauss pairing vs induction is
 contamination-famous), sum of first n odd numbers = n², infinitude of primes, Binet's
