@@ -218,4 +218,4 @@ def _reject_changed_outputs(outputs: list[tuple[Path, bytes]], *, force: bool) -
     ]
     if changed_paths:
         paths = ", ".join(str(path) for path in changed_paths)
-        raise typer.BadParameter(f"Refusing to replace changed output(s): {paths}; pass --force")
+        raise typer.BadParameter(f"pass --force to replace changed output(s); refusing: {paths}")

@@ -49,6 +49,13 @@ just the code.
   target rejected by unsquashfs; fixed by creating only its parent. 37720494
   invoked a nonexistent package __main__; fixed by calling the installed
   proof-faithfulness entry point. 37720527 then exposed the real 4 GiB memory limit.
+- **Gauntlet evidence:** Job 37722218 completed the node-local Mathlib warm-up in
+  82.604 seconds and passed `lake build`. Full pytest reported 270 passed and one
+  failure. The sole failure was the narrow-terminal CLI regression: Rich truncated the
+  trailing `pass --force` action after a long changed-output path. The action now
+  precedes the path, and the 40-column long-path regression plus all six CLI tests pass.
+  This is an output-usability fix; overwrite refusal and schema behavior were already
+  correct.
 - **Review evidence:** The earlier quick S2/S3 standard pass found one blocker and fixed
   it; its research pass found no blocker. S4's standard pass found and fixed 10
   blockers; its research pass reported all blockers fixed without retaining a count.
@@ -70,6 +77,7 @@ just the code.
 | GPFS fixed-source warm-up timeout | 1 | diagnosed; node-local path required |
 | Snapshot/staging script failures | 4 | 37719618, 37719638, 37720472, 37720494; fixed |
 | Four-GiB bounded-memory failure | 1 | 37720527; corrected to 8 GiB |
+| Narrow-terminal force-hint truncation | 1 | 37722218; fixed and CLI regression passed |
 | Submitted routes with Lean compile errors | 9 | persisted data outcomes; skipped |
 | Submitted routes containing sorry | 3 | persisted rejection evidence |
 | Paid API requests | 0 | approval and human inputs still required |

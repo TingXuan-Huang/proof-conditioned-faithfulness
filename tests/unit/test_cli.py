@@ -66,13 +66,17 @@ def test_lean_warmup_uses_separate_diagnostic_timeout(
 
 
 def test_schema_export_requires_force_for_changed_output(tmp_path: Path) -> None:
-    output_dir = tmp_path / "schemas"
+    output_dir = tmp_path / ("long-schema-output-" + "x" * 80) / "schemas"
     first_result = runner.invoke(app, ["schema", "export", "--output-dir", str(output_dir)])
     assert first_result.exit_code == 0
     schema_path = output_dir / "BenchmarkRecord.schema.json"
     schema_path.write_text("changed\n", encoding="utf-8")
 
-    refused_result = runner.invoke(app, ["schema", "export", "--output-dir", str(output_dir)])
+    refused_result = runner.invoke(
+        app,
+        ["schema", "export", "--output-dir", str(output_dir)],
+        terminal_width=40,
+    )
     assert refused_result.exit_code == 2
     assert schema_path.read_text(encoding="utf-8") == "changed\n"
     assert "pass --force" in refused_result.output

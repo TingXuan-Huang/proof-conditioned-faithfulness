@@ -44,6 +44,13 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
 
 ## Progress
 
+- 2026-07-26: Node-local gauntlet job 37722218 completed the fixed-source Mathlib
+  warm-up in 82.604 seconds and passed `lake build`; pytest reported 270 passed and
+  one failure. The failure was limited to CLI presentation: a long changed-output path
+  in a narrow Rich terminal hid the trailing `pass --force` guidance. The guidance now
+  precedes the path, and the targeted 40-column long-path regression plus all six CLI
+  tests pass. No readiness gate, candidate status, or human approval changes as a
+  result.
 - 2026-07-26: Current local engineering commits are 08ceba85 and dc7e348. The first
   fixed blocking S5/cross-stage provenance, theorem-only, trusted-check persistence,
   and crash-recovery defects. The second recorded the human decision for a 600-second
