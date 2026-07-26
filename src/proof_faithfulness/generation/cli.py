@@ -13,6 +13,10 @@ from pydantic import ValidationError
 
 from proof_faithfulness.artifacts import RunArtifactStore, sha256_bytes
 from proof_faithfulness.generation.budget import BudgetGate
+from proof_faithfulness.generation.checking import (
+    GenerationCheckSpec,
+    check_generation_response,
+)
 from proof_faithfulness.generation.config import (
     ConditionMatrix,
     PlanningModel,
@@ -27,6 +31,7 @@ from proof_faithfulness.generation.planning import (
     summarize_plan,
 )
 from proof_faithfulness.generation.run import GenerationHarness, PaidModelAdapter
+from proof_faithfulness.lean.artifacts import LeanArtifactError
 from proof_faithfulness.models import (
     AdapterResult,
     ModelAdapter,
@@ -179,6 +184,62 @@ def plan_check_command(
     typer.echo(json.dumps(payload, indent=2, sort_keys=True))
 
 
+@generation_app.command("check")
+def check_command(
+    specs_path: Annotated[
+        Path,
+        typer.Option("--specs", help="JSONL of request-bound Lean declarations."),
+    ],
+    run_id: Annotated[str, typer.Option("--run-id")],
+    outputs_root: Annotated[Path, typer.Option("--outputs-root")] = Path("outputs"),
+    project_root: Annotated[
+        Path,
+        typer.Option("--project-root", help="Lake project containing the pinned toolchain."),
+    ] = PROJECT_ROOT,
+) -> None:
+    """Trusted-checks verified generated responses and persists S2 evidence."""
+    store = RunArtifactStore(outputs_root, run_id)
+    try:
+        planned = _load_verified_run_requests(store)
+        specs = _read_check_specs(specs_path)
+        unknown = set(specs) - set(planned)
+        if unknown:
+            raise ValueError(f"Lean check specs reference unknown requests: {sorted(unknown)}")
+        outcomes = tuple(
+            check_generation_response(
+                store=store,
+                model_input=planned[request_id].model_input,
+                spec=specs[request_id].lean_candidate_spec(),
+                project_root=project_root,
+            )
+            for request_id in sorted(specs)
+        )
+    except (
+        LeanArtifactError,
+        OSError,
+        TypeError,
+        ValueError,
+        ValidationError,
+    ) as error:
+        raise typer.BadParameter(str(error), param_hint="--specs") from error
+    failures: dict[str, int] = {}
+    for outcome in outcomes:
+        category = outcome.result.failure_category
+        if category != "success":
+            failures[category] = failures.get(category, 0) + 1
+    typer.echo(
+        json.dumps(
+            {
+                "checked": len(outcomes),
+                "failures": failures,
+                "successes": len(outcomes) - sum(failures.values()),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+
+
 @generation_app.command("run")
 def run_command(
     requests_path: Annotated[
@@ -282,6 +343,38 @@ def _validate_pilot_counts(
         raise typer.BadParameter("Pilot proof-conditioned request count is invalid")
     if not baseline_counts or any(count != 15 for count in baseline_counts):
         raise typer.BadParameter("Pilot theorem-only request count is invalid")
+
+
+def _load_verified_run_requests(
+    store: RunArtifactStore,
+) -> dict[str, PlannedGeneration]:
+    relative_path = "requests.jsonl"
+    if not store.verified(relative_path):
+        raise ValueError("Generation requests are missing or checksum-invalid")
+    requests = _read_requests(store.path / relative_path)
+    by_id = {item.model_input.request.request_id: item for item in requests}
+    if len(by_id) != len(requests):
+        raise ValueError("Generation requests contain duplicate request IDs")
+    return by_id
+
+
+def _read_check_specs(path: Path) -> dict[str, GenerationCheckSpec]:
+    specs: dict[str, GenerationCheckSpec] = {}
+    with path.open(encoding="utf-8") as source:
+        for line_number, line in enumerate(source, start=1):
+            if not line.strip():
+                raise ValueError(f"Blank Lean check spec line: {line_number}")
+            try:
+                spec = GenerationCheckSpec.model_validate_json(line)
+                spec.lean_candidate_spec()
+            except (TypeError, ValueError, ValidationError) as error:
+                raise ValueError(f"Invalid Lean check spec at line {line_number}") from error
+            if spec.request_id in specs:
+                raise ValueError(f"Duplicate Lean check request ID: {spec.request_id}")
+            specs[spec.request_id] = spec
+    if not specs:
+        raise ValueError("Lean check spec artifact is empty")
+    return specs
 
 
 def _read_requests(path: Path) -> tuple[PlannedGeneration, ...]:

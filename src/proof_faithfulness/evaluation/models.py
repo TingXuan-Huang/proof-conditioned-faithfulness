@@ -146,7 +146,7 @@ class InternalAnnotationItem(EvaluationModel):
     request_id: Hash
     theorem_id: NonEmptyString
     theorem_statement: NonEmptyString
-    supplied_informal_proof: NonEmptyString
+    supplied_informal_proof: str
     generated_lean_proof: NonEmptyString
     rubric_text: NonEmptyString
     rubric_version: NonEmptyString
@@ -155,13 +155,25 @@ class InternalAnnotationItem(EvaluationModel):
     sensitive: SensitiveMetadata
 
 
+class EvaluationPreparationSpec(EvaluationModel):
+    """Trusted context needed to prepare one request for blinded evaluation."""
+
+    request_id: Hash
+    theorem_statement: NonEmptyString
+    supplied_informal_proof: str
+    rubric_text: NonEmptyString
+    rubric_version: NonEmptyString
+    extractor_version: NonEmptyString
+    signature_evidence: tuple[NonEmptyString, ...]
+
+
 class BlindedAnnotationItem(EvaluationModel):
     """One independently judged item with treatment identity removed."""
 
     schema_version: Literal["1.0"] = "1.0"
     blind_id: BlindId
     theorem_statement: NonEmptyString
-    supplied_informal_proof: NonEmptyString
+    supplied_informal_proof: str
     generated_lean_proof: NonEmptyString
     rubric_text: NonEmptyString
     rubric_version: NonEmptyString

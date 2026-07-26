@@ -10,6 +10,10 @@ from proof_faithfulness.generation.budget import (
     BudgetGate,
     PaidRequestPermit,
 )
+from proof_faithfulness.generation.checking import (
+    GenerationCheckSpec,
+    check_generation_response,
+)
 from proof_faithfulness.generation.config import (
     ConditionMatrix,
     PlanningModel,
@@ -37,6 +41,7 @@ __all__ = [
     "BudgetExceededError",
     "BudgetGate",
     "ConditionMatrix",
+    "GenerationCheckSpec",
     "GenerationHarness",
     "GenerationPlan",
     "HarnessResult",
@@ -49,6 +54,7 @@ __all__ = [
     "RepairTrackRunner",
     "SplitPlanningConfig",
     "build_generation_plan",
+    "check_generation_response",
     "load_condition_matrix",
     "load_planning_models",
     "load_splits",

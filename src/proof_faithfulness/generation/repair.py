@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Callable
-from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -16,8 +15,13 @@ from proof_faithfulness.generation.planning import PlannedGeneration, build_repa
 from proof_faithfulness.generation.prompts import PromptRepository
 from proof_faithfulness.generation.run import GenerationHarness, PaidModelAdapter
 from proof_faithfulness.lean import FAILURE_SUCCESS, CheckOutcome
+from proof_faithfulness.lean.artifacts import (
+    LeanArtifactError,
+    check_and_persist_candidate,
+    load_check_result,
+)
 from proof_faithfulness.models import ModelAdapter, ModelCapabilities, ModelInput
-from proof_faithfulness.schema import Hash, LeanCheckResult, NonEmptyString
+from proof_faithfulness.schema import Hash, NonEmptyString
 
 
 class RepairTrackError(RuntimeError):
@@ -216,24 +220,16 @@ class RepairTrackRunner:
         model_input: ModelInput,
         candidate: str,
     ) -> CheckOutcome:
-        persisted = _load_persisted_check_outcome(
-            store=store,
-            model_input=model_input,
-            candidate=candidate,
-        )
-        if persisted is not None:
-            return persisted
-        outcome = self._checker(model_input, candidate)
         request_id = model_input.request.request_id
-        if outcome.result.request_id != request_id:
-            raise RepairTrackError("Checker result request_id does not match the candidate")
-        _persist_check_outcome(
-            store=store,
-            model_input=model_input,
-            candidate=candidate,
-            outcome=outcome,
-        )
-        return outcome
+        try:
+            return check_and_persist_candidate(
+                store=store,
+                request_id=request_id,
+                candidate=candidate,
+                checker=lambda value: self._checker(model_input, value),
+            )
+        except LeanArtifactError as error:
+            raise RepairTrackError(str(error)) from error
 
 
 def _write_verified_identity(
@@ -254,123 +250,6 @@ def _write_verified_identity(
         return
     store.write_json(relative_path, value)
 
-
-def _persist_check_outcome(
-    *,
-    store: RunArtifactStore,
-    model_input: ModelInput,
-    candidate: str,
-    outcome: CheckOutcome,
-) -> None:
-    request_id = model_input.request.request_id
-    root = Path("lean") / request_id
-    stdout_path = root / "stdout.txt"
-    stderr_path = root / "stderr.txt"
-    _write_verified_bytes(store, stdout_path, outcome.stdout.encode("utf-8"))
-    _write_verified_bytes(store, stderr_path, outcome.stderr.encode("utf-8"))
-    assembled_path: Path | None = None
-    if outcome.assembled_source is not None:
-        assembled_path = root / "Candidate.lean"
-        _write_verified_bytes(
-            store,
-            assembled_path,
-            outcome.assembled_source.encode("utf-8"),
-        )
-    result = outcome.result.model_copy(
-        update={
-            "stdout_path": str(stdout_path),
-            "stderr_path": str(stderr_path),
-        }
-    )
-    _write_verified_identity(store, str(root / "check.json"), result.model_dump(mode="json"))
-    metadata = {
-        "schema_version": "1.0",
-        "request_id": request_id,
-        "candidate_sha256": _sha256_text(candidate),
-        "assembled_source_path": str(assembled_path) if assembled_path is not None else None,
-    }
-    _write_verified_identity(store, str(root / "check-input.json"), metadata)
-
-
-def load_check_result(store: RunArtifactStore, request_id: str) -> LeanCheckResult:
-    """Loads one verified request-bound checker result."""
-    relative_path = f"lean/{request_id}/check.json"
-    if not store.verified(relative_path):
-        raise RepairTrackError(f"Checker result is unverified: {request_id}")
-    try:
-        result = LeanCheckResult.model_validate_json((store.path / relative_path).read_bytes())
-    except (OSError, ValueError) as error:
-        raise RepairTrackError(f"Checker result is invalid: {request_id}") from error
-    if result.request_id != request_id:
-        raise RepairTrackError("Persisted checker result belongs to another request")
-    return result
-
-
-def _load_persisted_check_outcome(
-    *,
-    store: RunArtifactStore,
-    model_input: ModelInput,
-    candidate: str,
-) -> CheckOutcome | None:
-    request_id = model_input.request.request_id
-    root = Path("lean") / request_id
-    check_path = root / "check.json"
-    if not (store.path / check_path).exists():
-        return None
-    result = load_check_result(store, request_id)
-    input_path = root / "check-input.json"
-    if not store.verified(input_path):
-        raise RepairTrackError(f"Checker input identity is unverified: {request_id}")
-    try:
-        metadata = json.loads((store.path / input_path).read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise RepairTrackError(f"Checker input identity is invalid: {request_id}") from error
-    expected_metadata = {
-        "schema_version": "1.0",
-        "request_id": request_id,
-        "candidate_sha256": _sha256_text(candidate),
-    }
-    if not isinstance(metadata, dict) or any(
-        metadata.get(key) != value for key, value in expected_metadata.items()
-    ):
-        raise RepairTrackError(f"Checker input identity changed: {request_id}")
-    stdout_path = root / "stdout.txt"
-    stderr_path = root / "stderr.txt"
-    if result.stdout_path != str(stdout_path) or result.stderr_path != str(stderr_path):
-        raise RepairTrackError(f"Checker diagnostic paths changed: {request_id}")
-    stdout = _read_verified_text(store, stdout_path)
-    stderr = _read_verified_text(store, stderr_path)
-    assembled_source_path = metadata.get("assembled_source_path")
-    if assembled_source_path is None:
-        assembled_source = None
-    elif assembled_source_path == str(root / "Candidate.lean"):
-        assembled_source = _read_verified_text(store, Path(assembled_source_path))
-    else:
-        raise RepairTrackError(f"Checker source path changed: {request_id}")
-    return CheckOutcome(
-        result=result,
-        stdout=stdout,
-        stderr=stderr,
-        assembled_source=assembled_source,
-    )
-
-
-def _write_verified_bytes(store: RunArtifactStore, relative_path: Path, content: bytes) -> None:
-    path = store.path / relative_path
-    if path.exists():
-        if not store.verified(relative_path) or path.read_bytes() != content:
-            raise RepairTrackError(f"Repair checker artifact changed: {relative_path}")
-        return
-    store.write_bytes(relative_path, content)
-
-
-def _read_verified_text(store: RunArtifactStore, relative_path: Path) -> str:
-    if not store.verified(relative_path):
-        raise RepairTrackError(f"Repair checker artifact is unverified: {relative_path}")
-    try:
-        return (store.path / relative_path).read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError) as error:
-        raise RepairTrackError(f"Repair checker artifact is unreadable: {relative_path}") from error
 
 
 def _check_succeeded(outcome: CheckOutcome) -> bool:

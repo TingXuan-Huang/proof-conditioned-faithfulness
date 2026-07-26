@@ -205,6 +205,43 @@ def test_disagreement_queue_compares_humans_judge_and_automatic_evidence() -> No
     assert "human_automatic_strategy_disagreement" in queue[0].reasons
 
 
+@pytest.mark.parametrize(
+    ("evidence_kind", "field", "value"),
+    [
+        ("automatic", "packet_checksum", "e" * 64),
+        ("automatic", "rubric_version", "rubric-other"),
+        ("automatic", "extractor_version", "extractor-other"),
+        ("judge", "packet_checksum", "e" * 64),
+        ("judge", "rubric_version", "rubric-other"),
+        ("judge", "extractor_version", "extractor-other"),
+    ],
+)
+def test_disagreement_queue_rejects_review_evidence_provenance_mismatch(
+    evidence_kind: str,
+    field: str,
+    value: str,
+) -> None:
+    labels = (
+        _imported_label(0, "ann-1", "match_A", ("route",), "used"),
+        _imported_label(0, "ann-2", "match_A", ("route",), "used"),
+    )
+    with pytest.raises(ValueError, match="provenance mismatch"):
+        if evidence_kind == "automatic":
+            build_disagreement_queue(
+                labels,
+                automatic_outputs=(
+                    _automatic_output(0).model_copy(update={field: value}),
+                ),
+            )
+        else:
+            build_disagreement_queue(
+                labels,
+                judge_outputs=(
+                    _judge_output(0).model_copy(update={field: value}),
+                ),
+            )
+
+
 def test_review_queue_includes_missing_second_labels_and_is_deterministic() -> None:
     labels = tuple(
         _imported_label(index, "ann-1", "match_A", ("route",), "used") for index in range(12)

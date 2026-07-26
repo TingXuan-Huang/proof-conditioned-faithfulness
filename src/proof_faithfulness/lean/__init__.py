@@ -1,5 +1,12 @@
 """Trusted Lean checking and proof-term dependency inspection."""
 
+from proof_faithfulness.lean.artifacts import (
+    LeanArtifactError,
+    check_and_persist_candidate,
+    load_check_outcome,
+    load_check_result,
+    persist_check_outcome,
+)
 from proof_faithfulness.lean.checker import (
     FAILURE_AXIOM_AUDIT,
     FAILURE_EXTRACTION,
@@ -44,10 +51,15 @@ __all__ = [
     "CheckOutcome",
     "DependencyProbeError",
     "DependencyReport",
+    "LeanArtifactError",
     "LeanCandidateSpec",
     "LocalFactUse",
+    "check_and_persist_candidate",
     "check_candidate",
     "hash_lean_statement",
+    "load_check_outcome",
+    "load_check_result",
     "network_isolation_probe",
+    "persist_check_outcome",
     "probe_dependencies",
 ]

@@ -204,6 +204,7 @@ def build_disagreement_queue(
             reasons.add("human_unresolved")
         judge = judges.get(blind_id)
         if judge is not None:
+            _require_matching_review_provenance(item_labels, judge)
             if any(label.original.classification != judge.classification for label in item_labels):
                 reasons.add("human_llm_strategy_disagreement")
             if any(
@@ -217,6 +218,7 @@ def build_disagreement_queue(
                 reasons.add("llm_strategy_expressibility_uncertain")
         candidate = automatic.get(blind_id)
         if candidate is not None:
+            _require_matching_review_provenance(item_labels, candidate)
             if any(
                 label.original.classification != candidate.classification for label in item_labels
             ):
@@ -242,6 +244,29 @@ def build_disagreement_queue(
             f"Review evidence references items without human labels: {sorted(unknown)}"
         )
     return tuple(queue)
+
+
+def _require_matching_review_provenance(
+    labels: tuple[ImportedHumanLabel, ...],
+    evidence: AutomaticJudgment | AuxiliaryJudgeOutput,
+) -> None:
+    expected = {
+        (
+            label.packet_checksum,
+            label.rubric_version,
+            label.extractor_version,
+        )
+        for label in labels
+    }
+    actual = (
+        evidence.packet_checksum,
+        evidence.rubric_version,
+        evidence.extractor_version,
+    )
+    if expected != {actual}:
+        raise ValueError(
+            f"Review evidence provenance mismatch for human labels: {evidence.blind_id}"
+        )
 
 
 def select_review_queue(

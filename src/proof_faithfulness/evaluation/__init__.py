@@ -15,6 +15,10 @@ from proof_faithfulness.evaluation.blinding import (
     export_blinded_bundle,
     verify_blinded_bundle,
 )
+from proof_faithfulness.evaluation.inputs import (
+    EvaluationInputError,
+    prepare_internal_annotation_item,
+)
 from proof_faithfulness.evaluation.metrics import (
     binary_agreement,
     edge_agreement,
@@ -27,6 +31,7 @@ from proof_faithfulness.evaluation.signatures import extract_signatures, step_co
 
 __all__ = [
     "BlindingError",
+    "EvaluationInputError",
     "adjudicate_labels",
     "binary_agreement",
     "build_calibration_report",
@@ -42,6 +47,7 @@ __all__ = [
     "krippendorff_alpha_nominal",
     "multilabel_agreement",
     "nominal_agreement",
+    "prepare_internal_annotation_item",
     "select_review_queue",
     "step_coverage",
     "verify_blinded_bundle",

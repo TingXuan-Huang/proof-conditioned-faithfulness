@@ -12,10 +12,15 @@ from typing import Annotated, Any
 import typer
 from pydantic import ValidationError
 
+from proof_faithfulness.artifacts import RunArtifactStore
 from proof_faithfulness.evaluation.annotations import import_human_labels
 from proof_faithfulness.evaluation.blinding import (
     export_blinded_bundle,
     publish_bytes_exclusive,
+)
+from proof_faithfulness.evaluation.inputs import (
+    EvaluationInputError,
+    prepare_internal_annotation_item,
 )
 from proof_faithfulness.evaluation.metrics import (
     binary_agreement,
@@ -24,12 +29,53 @@ from proof_faithfulness.evaluation.metrics import (
     nominal_agreement,
 )
 from proof_faithfulness.evaluation.models import (
+    EvaluationPreparationSpec,
     HumanLabel,
     ImportedHumanLabel,
     InternalAnnotationItem,
 )
+from proof_faithfulness.generation.planning import PlannedGeneration
 
 app = typer.Typer(help="Export blinded packets and validate independent annotations.")
+
+
+@app.command("prepare")
+def prepare_command(
+    contexts_path: Annotated[
+        Path,
+        typer.Option("--contexts", help="Request-bound evaluation context JSONL."),
+    ],
+    outputs_root: Annotated[
+        Path,
+        typer.Option("--outputs-root", help="Root containing the generation run."),
+    ],
+    run_id: Annotated[str, typer.Option("--run-id", help="Generation run identifier.")],
+    output_path: Annotated[
+        Path,
+        typer.Option("--output", help="New internal annotation-item JSONL path."),
+    ],
+) -> None:
+    """Prepares accepted generated proofs for later blinded export."""
+    store = RunArtifactStore(outputs_root, run_id)
+    try:
+        planned = _load_planned_inputs(store)
+        specs = _load_preparation_specs(contexts_path)
+        unknown = set(specs) - set(planned)
+        if unknown:
+            raise ValueError(f"Evaluation contexts reference unknown requests: {sorted(unknown)}")
+        items = tuple(
+            prepare_internal_annotation_item(
+                store=store,
+                model_input=planned[request_id].model_input,
+                spec=specs[request_id],
+            )
+            for request_id in sorted(specs)
+        )
+        payload = b"".join(_canonical_json_bytes(item.model_dump(mode="json")) for item in items)
+        publish_bytes_exclusive(output_path, payload)
+    except (EvaluationInputError, OSError, ValidationError, ValueError) as error:
+        raise typer.BadParameter(str(error)) from error
+    typer.echo(f"prepared_items={len(items)}")
 
 
 @app.command("export")
@@ -124,6 +170,54 @@ def agreement_command(
         ).decode("utf-8"),
         nl=False,
     )
+
+
+def _load_planned_inputs(store: RunArtifactStore) -> dict[str, PlannedGeneration]:
+    relative_path = "requests.jsonl"
+    if not store.verified(relative_path):
+        raise ValueError("Generation requests are missing or checksum-invalid")
+    try:
+        lines = (store.path / relative_path).read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError) as error:
+        raise ValueError("Generation requests are unreadable") from error
+    planned: dict[str, PlannedGeneration] = {}
+    for line_number, line in enumerate(lines, start=1):
+        if not line.strip():
+            continue
+        try:
+            item = PlannedGeneration.model_validate_json(line)
+        except ValidationError as error:
+            raise ValueError(
+                f"Invalid generation request at requests.jsonl:{line_number}"
+            ) from error
+        request_id = item.model_input.request.request_id
+        if request_id in planned:
+            raise ValueError(f"Duplicate generation request ID: {request_id}")
+        planned[request_id] = item
+    if not planned:
+        raise ValueError("Generation request artifact contains no requests")
+    return planned
+
+
+def _load_preparation_specs(path: Path) -> dict[str, EvaluationPreparationSpec]:
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError) as error:
+        raise ValueError(f"Unable to read evaluation contexts: {path}") from error
+    specs: dict[str, EvaluationPreparationSpec] = {}
+    for line_number, line in enumerate(lines, start=1):
+        if not line.strip():
+            continue
+        try:
+            spec = EvaluationPreparationSpec.model_validate_json(line)
+        except ValidationError as error:
+            raise ValueError(f"Invalid evaluation context at {path}:{line_number}") from error
+        if spec.request_id in specs:
+            raise ValueError(f"Duplicate evaluation context request ID: {spec.request_id}")
+        specs[spec.request_id] = spec
+    if not specs:
+        raise ValueError("Evaluation context artifact contains no items")
+    return specs
 
 
 def _load_internal_items(path: Path) -> tuple[InternalAnnotationItem, ...]:
