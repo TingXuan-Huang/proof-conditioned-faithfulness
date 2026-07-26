@@ -65,6 +65,27 @@ for a stateless agent arriving with only a fresh clone.
                       old 120 s boundary, the owner set normative S2 to a fixed-source
                       warm-up (1,200 s separate ceiling) and 600 s per fresh candidate.
                       Import narrowing remains a separate identity-changing decision.
+    GPFS diagnosis:   job 37717888 timed out at 1,200.014 s after 20:15 elapsed while
+                      using only 3.597 CPU seconds and reading 86.47 MB. Mathlib.olean
+                      exists; compiled Mathlib is 4.8 GB/about 28,435 entries. Treat
+                      this as shared-filesystem waiting, never theorem invalidity.
+    memory evidence:  node-local 4 GiB job 37720527 exited 139 after 73.87 s. Unlimited
+                      job 37720766 exited 0 in 1:40.12 at 4,071,788 KiB maximum RSS.
+                      Bounded 8 GiB job 37721113 exited 0 in 3:18.66 at 4,072,176 KiB.
+                      Normative RLIMIT_AS is 8,192 MiB; request at least 16 GiB from
+                      SLURM. Preserve exact signal/exit code as resource_limit.
+                      This is an operational classification: inspect the raw exit and
+                      diagnostics because a signal alone does not prove RAM exhaustion.
+    local snapshot:  LZ4 SquashFS build 37719636 completed in 25:17. Each Lean job
+                      verifies archive checksum, copies and verifies it locally,
+                      extracts into unique private /tmp, verifies git commit and clean
+                      state, and has signal cleanup. There is no unverified GPFS
+                      fallback. outputs/ and approvals/ are excluded; persistent
+                      artifacts write back to the original shared outputs/ tree.
+    staging errors:   37719618 used unsupported zstd; 37719638 lost unsquashfs from
+                      restricted PATH; 37720472 pre-created the extraction target;
+                      37720494 invoked a nonexistent package __main__. All were
+                      diagnosed and corrected before the memory experiments.
 
 ### 1b. Tillicum facts (public policy discovery, 2026-07-25)
 
@@ -126,6 +147,43 @@ gets purged mid-experiment — check quota/purge policy first).
     uv run proof-faithfulness env lean-warmup \
       --project-root . --timeout-seconds 1200
                                              # fixed source; no candidate/model output
+
+### 2a. Klone node-local Lean staging
+
+Full-Mathlib checks on Klone must stage a commit-bound LZ4 SquashFS image. The current
+archive builder and runner are operational tools, not experiment approval. A runner
+must implement every step below and fail closed at the first mismatch:
+
+1. Require a clean source commit and name the archive with the full commit hash.
+2. Build with compressor lz4, never unsupported zstd, and exclude outputs/, approvals/,
+   secrets, and transient caches.
+3. Store a SHA-256 sidecar beside the archive. Verify the shared archive before copying,
+   then verify the local copy against the same digest before extraction.
+4. Create a unique job-owned parent under /tmp with mode 0700. Do not pre-create the
+   final unsquashfs destination. Install EXIT, TERM, INT, and HUP cleanup traps.
+5. Use absolute /usr/sbin/unsquashfs under restricted SLURM environments. Verify the
+   extracted git commit and clean state before running any local code.
+6. Export PYTHONPATH from the extraction and call the installed proof-faithfulness
+   entry point. Do not rely on a package __main__ module.
+7. Keep child RLIMIT_AS at 8,192 MiB, retain the 1,200/600-second limits, request at
+   least 16 GiB SLURM memory, and persist results only to original shared outputs/.
+
+Representative checks:
+
+    test -n "${SLURM_JOB_ID:?}"
+    install -d -m 0700 "/tmp/${USER}/proof-faithfulness-${SLURM_JOB_ID}"
+    sha256sum -c "${ARCHIVE}.sha256"
+    cp "${ARCHIVE}" "${LOCAL_ARCHIVE}"
+    printf '%s  %s\n' "${EXPECTED_SHA256}" "${LOCAL_ARCHIVE}" > "${LOCAL_SHA_FILE}"
+    sha256sum -c "${LOCAL_SHA_FILE}"
+    /usr/sbin/unsquashfs -d "${EXTRACT_ROOT}" "${LOCAL_ARCHIVE}"
+    test "$(git -C "${EXTRACT_ROOT}" rev-parse HEAD)" = "${EXPECTED_COMMIT}"
+    test -z "$(git -C "${EXTRACT_ROOT}" status --porcelain)"
+
+The archive is one-time work per immutable commit. Never reuse one whose digest, commit,
+exclusions, or toolchain identity differs from the intended run, and never fall back to
+an unverified shared tree.
+
 `uv sync --frozen` fails if uv.lock is missing or stale — that means the clone is bad
 or someone edited pyproject.toml without re-locking on the laptop; stop and report,
 do not run `uv lock` on the server (the lockfile is laptop-owned).

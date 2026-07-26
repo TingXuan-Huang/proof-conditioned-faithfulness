@@ -44,6 +44,25 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
 
 ## Progress
 
+- 2026-07-26: Current local engineering commits are 08ceba85 and dc7e348. The first
+  fixed blocking S5/cross-stage provenance, theorem-only, trusted-check persistence,
+  and crash-recovery defects. The second recorded the human decision for a 600-second
+  candidate timeout plus a separate 1,200-second warm-up. These changes do not alter
+  any candidate Status, import identity, human approval, or readiness gate.
+- 2026-07-26: Node-local memory experiments set the bounded checker, dependency probe,
+  generation-check, and warm-up address-space default to 8,192 MiB. Old-limit job
+  37720527 exited 139 after 73.87 seconds at 4,096 MiB. Unlimited diagnostic 37720766
+  exited 0 in 1:40.12 at 4,071,788 KiB maximum RSS; 8 GiB diagnostic 37721113 exited 0
+  in 3:18.66 at 4,072,176 KiB. SLURM checks must request at least 16 GiB. Resource
+  signals retain their exit code and classify as operational resource_limit outcomes,
+  not invalid proofs.
+- 2026-07-26: LZ4 snapshot 37719636 completed in 25:17. The current Klone Lean path
+  verifies its checksum and commit, copies and extracts into a unique private /tmp
+  directory, and writes durable evidence back to shared outputs/. T016 remains open
+  until 036-A completes persisted S2/S3 through this path. The API smoke remains open;
+  no API request or model download has run, and matching human approval is still
+  mandatory.
+
 - [x] 2026-07-25: Human timeout decision implemented after clean-commit SLURM job
       `37715755` repeatedly reached the old 120-second boundary. Normative S2 candidate
       checks now allow 600 seconds, after one fixed-source Mathlib warm-up with a
@@ -192,6 +211,17 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
 
 ## Surprises & Discoveries
 
+- 2026-07-26: The cold Mathlib failure had two separate operational causes. Shared GPFS
+  imposed severe metadata/read waiting: job 37717888 used 3.597 CPU seconds over 20:15
+  and timed out its 1,200-second warm-up even though Mathlib.olean exists. After
+  node-local extraction removed that bottleneck, the 4 GiB RLIMIT_AS produced exit 139;
+  direct and 8 GiB controls both succeeded at about 4,072,000 KiB maximum RSS. Raising
+  the address-space ceiling to 8 GiB is therefore evidence-based and remains bounded.
+- 2026-07-26: The snapshot path required four script corrections before reaching Lean:
+  unsupported zstd in 37719618, missing unsquashfs on restricted PATH in 37719638,
+  a pre-created extraction target in 37720472, and an invalid package __main__
+  invocation in 37720494. These are harness failures, not proof outcomes.
+
 - 2026-07-25: Review found that source/binder-name matching was not sound evidence for
   explicit-local utilization: theorem parameters and unrelated shadowed lambdas can use
   the same name. S3 now derives local facts from elaborated proof-term `letFun`/`letE`
@@ -249,6 +279,16 @@ New decisions (2026-07-25, prototype engineering checkpoint):
   fixed. Cosmetic issues, low-risk extensibility, performance polish, and broader
   library/publication hardening may be documented and deferred. This does not weaken
   the human gates, paid-request permit, or later publish review.
+- On Klone, full Mathlib checks use the checksummed, commit-bound LZ4 SquashFS copied and
+  extracted to a unique mode-0700 node-local /tmp directory. The job verifies archive
+  digest and extracted commit before use, has signal cleanup, and has no unverified
+  shared-path fallback. outputs/ and approvals/ are excluded from the image; persistent
+  results go to the original shared outputs/ tree.
+- The normative child RLIMIT_AS is 8,192 MiB for S2, S3, generation checks, and the
+  fixed-source warm-up. SLURM memory is at least 16 GiB. The 600/1,200-second timeouts
+  remain unchanged. A signal/resource exit is operational evidence and cannot be
+  counted as theorem invalidity. Import narrowing remains a separate human-gated
+  identity change.
 - S1-S5 completion means their exact fixture/mock Exit criteria passed. It does not
   imply readiness-gate approval: P and S remain human-owned, C must wait for those
   approved inputs and ordered execution, and A requires real models plus a paid permit

@@ -28,12 +28,13 @@ FAILURE_TRUST_BYPASS = "trust_bypass"
 FAILURE_SYNTAX = "syntax_invalid"
 FAILURE_TYPE = "type_invalid"
 FAILURE_TIMEOUT = "timeout"
+FAILURE_RESOURCE_LIMIT = "resource_limit"
 FAILURE_AXIOM_AUDIT = "axiom_audit_failed"
 FAILURE_SANDBOX = "sandbox_error"
 
 DEFAULT_TIMEOUT_SECONDS = 600.0
 DEFAULT_WARMUP_TIMEOUT_SECONDS = 1200.0
-DEFAULT_MEMORY_LIMIT_MB = 4096
+DEFAULT_MEMORY_LIMIT_MB = 8192
 DEFAULT_MAX_HEARTBEATS = 2_000_000
 MAX_DIAGNOSTIC_BYTES = 1_048_576
 DIAGNOSTIC_TRUNCATION_MARKER = "[diagnostic output truncated]"
@@ -180,6 +181,19 @@ class LeanWarmupResult:
     @property
     def success(self) -> bool:
         return self.exit_code == 0 and not self.timed_out and self.setup_error is None
+
+    @property
+    def failure_category(self) -> str | None:
+        """Classify a failed warm-up without treating it as proof evidence."""
+        if self.success:
+            return None
+        if self.setup_error is not None or self.exit_code == 126:
+            return FAILURE_SANDBOX
+        if self.timed_out:
+            return FAILURE_TIMEOUT
+        if _is_resource_limit_exit(self.exit_code):
+            return FAILURE_RESOURCE_LIMIT
+        return "compiler_error"
 
 
 @dataclass(frozen=True)
@@ -532,6 +546,11 @@ def _execution_outcome(
         parser_status = "unknown"
         elaboration_status = "timeout"
         axioms = ()
+    elif _is_resource_limit_exit(execution.exit_code):
+        category = FAILURE_RESOURCE_LIMIT
+        parser_status = "unknown"
+        elaboration_status = "failed"
+        axioms = ()
     elif execution.exit_code != 0:
         category = _classify_compiler_failure(diagnostics)
         parser_status = "failed" if category == FAILURE_SYNTAX else "success"
@@ -574,6 +593,19 @@ def _classify_compiler_failure(diagnostics: str) -> str:
     if any(marker in lowered for marker in _SYNTAX_MARKERS):
         return FAILURE_SYNTAX
     return FAILURE_TYPE
+
+
+def _is_resource_limit_exit(exit_code: int | None) -> bool:
+    """Recognize process signals associated with bounded-resource termination."""
+    if exit_code is None:
+        return False
+    signal_number = -exit_code if exit_code < 0 else exit_code - 128
+    return signal_number in {
+        signal.SIGABRT,
+        signal.SIGKILL,
+        signal.SIGSEGV,
+        signal.SIGXCPU,
+    }
 
 
 def _parse_axioms(diagnostics: str) -> tuple[str, ...] | None:

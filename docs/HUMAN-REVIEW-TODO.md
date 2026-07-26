@@ -10,6 +10,16 @@ benchmark, scientific interpretation, model slate, spending, or publication clai
 
 ## Current state in one minute
 
+- Current engineering commits are 08ceba85 and dc7e348. The focused integration review
+  fixed blocking evaluation-provenance, theorem-only, trusted-check persistence, and
+  crash-recovery defects. Deferred deep reviews remain pending.
+- Klone full-Mathlib execution now requires a checksummed LZ4 snapshot extracted into
+  private node-local /tmp. GPFS job 37717888 timed out with almost no CPU use. Local
+  4 GiB job 37720527 exited 139, while unlimited 37720766 and bounded 8 GiB 37721113
+  both succeeded at about 4,072,000 KiB maximum RSS.
+- The child remains bounded at 8,192 MiB and SLURM jobs must request at least 16 GiB.
+  A resource signal is an operational outcome, not a proof failure. This evidence does
+  not approve a human gate.
 - S1-S5 have green fixture/mock Exit criteria. No paid API request or model-weight
   download has occurred.
 - The proposed pilot-5 is 001/033/036/040/041. It is still draft; Gate P is open.
@@ -32,7 +42,7 @@ preempted. Never use a preemptible job for a paid API call.
 
 ```bash
 srun --account=stf --partition=cpu-g2 --time=01:30:00 \
-  --cpus-per-task=2 --mem=8G --pty bash -l
+  --cpus-per-task=2 --mem=16G --pty bash -l
 hostname
 ```
 
@@ -244,6 +254,23 @@ Files to read:
 Every item below changes the scientific contract, experiment identity, cost exposure,
 or interpretation. Record the answer in the active plan's Decision Log before changing
 code or running the affected stage.
+
+- [ ] **Eight-GiB memory boundary:** Review jobs 37720527, 37720766, and 37721113 and
+  confirm the 8,192 MiB child RLIMIT_AS plus at least 16 GiB SLURM allocation. Confirm
+  exact signal/exit codes remain visible and resource_limit is never counted as
+  syntax/type invalidity.
+- [ ] **Node-local execution policy:** Review the commit-bound LZ4 SquashFS path:
+  checksum before copy, checksum after copy, unique mode-0700 /tmp parent, absolute
+  unsquashfs, extracted commit/clean checks, signal cleanup, exclusions, and shared
+  result persistence. Decide whether the scripts become reviewed repository tooling.
+- [ ] **Snapshot retention:** Decide cache ownership, retention, quota monitoring, and
+  deletion policy for per-commit archives. Never reuse an archive across a digest,
+  commit, toolchain, or exclusion change.
+- [ ] **S5 integration review:** Inspect 08ceba85, especially verified terminal Lean
+  artifacts, theorem-only provenance, crash recovery, and rejection of unchecked text.
+- [ ] **API intake remains gated:** T016 and the engineering gauntlet finish first.
+  Then select the provider and deliver its key only through the private environment
+  mechanism. A matching approvals/ record remains mandatory before any paid request.
 
 - [ ] **Timeout implementation review:** The owner decided on one fixed-source Mathlib
   warm-up per batch (1,200-second ceiling) and 600 seconds per fresh candidate after job

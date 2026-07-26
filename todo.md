@@ -46,9 +46,10 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
 - [ ] T012 (P0) Frontier API key placement — the user provides the key to the server
       agent only after T016 proof processing and only for an approval-bound API smoke.
       S4 transports and T011's paid-request permit/refusal tests are complete. Keep the
-      value outside the repo, logs, and agent context; inject it by environment variable
-      at job submission under RUNBOOK §3. The provider name and key remain pending; do
-      not request either at this checkpoint.
+      value outside the repo and logs; inject it by environment variable at job
+      submission under RUNBOOK §3. Provider/key confirmation and a matching human-owned
+      approval remain pending. No API request has run; do not request or use a key before
+      T016 and engineering integration are complete.
 - [ ] T007 (P2) Recruit a second qualified annotator (or explicitly preregister a
       single-annotator + LLM-judge fallback). Blocks the annotation phase.
       See analysis-decisions-pending.md §(f).
@@ -67,14 +68,22 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       S2 to 600 seconds per candidate after a separate 1,200-second warm-up; any prior
       120-second timeout is operationally invalid and must not be reported as theorem
       failure.
+      Current operational state: GPFS warm-up can exceed 1,200 seconds while using
+      almost no CPU. Checksummed LZ4 snapshot 37719636 is the current Klone path. At
+      4 GiB, 37720527 exited 139; unlimited 37720766 and bounded 8 GiB 37721113
+      succeeded at about 4,072,000 KiB maximum RSS. The normative child limit is
+      8,192 MiB and SLURM must request at least 16 GiB. Finish persisted S2/S3 for
+      036-A only after the local runner is revalidated; never reinterpret a resource
+      signal as invalid proof evidence.
 - [ ] T017 (P1) Deferred deep review — S2/S3 trusted checking and dependency analysis.
       **Status:** pending. **Scope/stage/files:** S2-S3;
       `ProofFaithfulness/{Audit,Dependency}.lean`, `src/proof_faithfulness/lean/**`, and
       their fixtures/integration tests. **Standards:** full
       `coding-standard/CODE_REVIEW.md` plus `coding-standard/style/research.md` pass.
       **Known risks/questions:** sandbox portability, diagnostic-marker provenance,
-      parser/category normalization, warm-up effectiveness across GPFS/hosts, enforcement
-      of separate 1,200/600-second limits, and regressions around theorem-parameter-type
+      parser/category normalization, GPFS metadata stalls, node-local archive integrity
+      and cleanup, resource-signal classification, warm-up effectiveness across hosts,
+      enforcement of 8 GiB and separate 1,200/600-second limits, and regressions around
       lets versus candidate-introduced local facts. **Prerequisites:** stable pilot Lean
       imports, representative T016 proofs, and a human-frozen S3 utilization metric.
       **Human/code boundary:** humans define the A/B strategy signatures, decide what
@@ -114,8 +123,9 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       cross-stage tests. **Standards:** full `coding-standard/CODE_REVIEW.md` plus
       `coding-standard/style/research.md` pass. **Known risks/questions:** identity drift
       across schema versions, partial-write recovery, stale checksums, environment capture,
-      and clean-clone/second-host reproducibility. **Prerequisites:** individual stage
-      contracts frozen and an integration fixture run available on both intended hosts.
+      node-local versus shared-path equivalence, and clean-clone/second-host
+      reproducibility. **Prerequisites:** individual stage contracts frozen and a
+      terminal node-local integration fixture available on both intended hosts.
       **Risk priority:** P1 because silent lineage drift can invalidate experiment results.
 
 ## Pending Human Inputs

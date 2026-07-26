@@ -54,6 +54,7 @@ def test_lean_warmup_uses_separate_diagnostic_timeout(
     assert result.exit_code == 0
     assert json.loads(result.output) == {
         "exit_code": 0,
+        "failure_category": None,
         "setup_error": None,
         "success": True,
         "timed_out": False,
@@ -61,7 +62,7 @@ def test_lean_warmup_uses_separate_diagnostic_timeout(
     }
     assert observed["project_root"] == tmp_path
     assert observed["timeout_seconds"] == 1200.0
-    assert observed["memory_limit_mb"] == 4096
+    assert observed["memory_limit_mb"] == 8192
 
 
 def test_schema_export_requires_force_for_changed_output(tmp_path: Path) -> None:

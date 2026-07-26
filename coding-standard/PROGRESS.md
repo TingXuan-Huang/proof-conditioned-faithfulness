@@ -10,6 +10,70 @@ just the code.
 
 ---
 
+### 2026-07-26 - Raise the bounded Lean address space and stage Mathlib locally
+
+- **Tier:** prototype trust-boundary and operations correction
+- **Commits:** 08ceba85f62b864195cdac0963f8336a42638ad1 binds evaluation
+  inputs to checksum-verified terminal Lean artifacts and fixes theorem-only provenance,
+  trusted-check persistence, and crash recovery.
+  dc7e34822baa582dfc2b549d41d3eebd4383a6ec implements the human-selected
+  600-second candidate timeout plus a separate 1,200-second fixed-source warm-up.
+- **Memory decision:** The normative S2/S3/warm-up address-space ceiling is now
+  8,192 MiB, still enforced child-side with RLIMIT_AS. SLURM jobs using it must
+  request at least 16 GiB so the 8 GiB child ceiling plus extraction, Python, and
+  scheduler overhead fit inside the allocation.
+- **Evidence:** With the checksummed node-local snapshot, job 37720527 reached Lean
+  but the old 4,096 MiB RLIMIT_AS exited 139 after 73.87 seconds. Direct diagnostic
+  job 37720766 removed that limit and exited 0 in 1:40.12 with maximum RSS
+  4,071,788 KiB. Bounded 8 GiB job 37721113 exited 0 in 3:18.66 with maximum RSS
+  4,072,176 KiB. This brackets the required memory above 4 GiB and verifies that
+  8 GiB remains a finite working ceiling.
+- **Classification fix:** Signal-style exits associated with bounded resources,
+  including -11 and shell-style 139, now persist as resource_limit with their
+  exact exit code. They are operational failures, never syntax_invalid,
+  type_invalid, or evidence against the theorem. Timeouts still terminate and reap
+  the dedicated process group.
+- **Storage diagnosis:** Shared-GPFS preflight 37717888 spent 20:15 in the
+  fixed-source import, used only 3.597 CPU seconds, read 86.47 MB, and timed out at
+  1,200.014 seconds. The top-level Mathlib.olean exists; compiled Mathlib is
+  4.8 GB/about 28,435 entries; and bounded Lake metadata lookup also stalled.
+  The current Klone path is therefore a commit-bound, checksummed LZ4 SquashFS archive
+  copied and extracted into a unique private node-local /tmp directory before Lean.
+- **Snapshot evidence:** LZ4 archive build 37719636 completed in 25:17 and produced
+  a 2,643,435,520-byte archive with 55,582 files and checksum verification. It excludes
+  outputs/, approvals/, and transient caches. Persistent results still write to the
+  original shared project output directory.
+- **Script failure ledger:** 37719618 failed because local mksquashfs does not
+  support zstd; fixed by LZ4. 37719638 could not find unsquashfs after its restricted
+  PATH; fixed by an absolute executable path. 37720472 pre-created the extraction
+  target rejected by unsquashfs; fixed by creating only its parent. 37720494
+  invoked a nonexistent package __main__; fixed by calling the installed
+  proof-faithfulness entry point. 37720527 then exposed the real 4 GiB memory limit.
+- **Review evidence:** The earlier quick S2/S3 standard pass found one blocker and fixed
+  it; its research pass found no blocker. S4's standard pass found and fixed 10
+  blockers; its research pass reported all blockers fixed without retaining a count.
+  The focused S5 integration review found and fixed four blocking provenance,
+  theorem-only, persistence, and crash issues in 08ceba85. Deferred deep reviews
+  T017-T020 remain pending under the prototype policy.
+- **Current boundary:** T016 still requires the persisted accepted check and S3 probe
+  for 036-A through the verified local path. Nine other submitted routes remain
+  persisted data-level failures and are not repaired. No API request or model download
+  ran; a real API smoke still requires the human-owned provider/key delivery and a
+  matching machine-readable approval.
+
+#### Error counter at this checkpoint
+
+| Category | Count | Status |
+| --- | ---: | --- |
+| S5/cross-stage correctness blockers | 4 | fixed in 08ceba85 |
+| Trusted-check timeout default decision | 1 | fixed in dc7e348 |
+| GPFS fixed-source warm-up timeout | 1 | diagnosed; node-local path required |
+| Snapshot/staging script failures | 4 | 37719618, 37719638, 37720472, 37720494; fixed |
+| Four-GiB bounded-memory failure | 1 | 37720527; corrected to 8 GiB |
+| Submitted routes with Lean compile errors | 9 | persisted data outcomes; skipped |
+| Submitted routes containing sorry | 3 | persisted rejection evidence |
+| Paid API requests | 0 | approval and human inputs still required |
+
 ### 2026-07-25 — Adopt 600-second trusted-check timeout after SLURM boundary evidence
 
 - **Tier:** prototype trust-boundary correction

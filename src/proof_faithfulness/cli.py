@@ -136,6 +136,7 @@ def lean_warmup(
         json.dumps(
             {
                 "exit_code": result.exit_code,
+                "failure_category": result.failure_category,
                 "setup_error": result.setup_error,
                 "success": result.success,
                 "timed_out": result.timed_out,
