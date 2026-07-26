@@ -82,10 +82,19 @@ for a stateless agent arriving with only a fresh clone.
                       state, and has signal cleanup. There is no unverified GPFS
                       fallback. outputs/ and approvals/ are excluded; persistent
                       artifacts write back to the original shared outputs/ tree.
+                      Commit-a65e9d8 build 37722524 completed in 5:37. Immutable
+                      gauntlet 37722531 completed in 4:01: warm-up 114.798 s, lake
+                      build green, 271 pytest tests, Ruff clean, Pyright 0, and exact
+                      S4 plan/plan-check green. Trusted 036-A job 37724510 completed
+                      warm-up/S2/S3 in 1:39 and verified all artifact sidecars.
     staging errors:   37719618 used unsupported zstd; 37719638 lost unsquashfs from
                       restricted PATH; 37720472 pre-created the extraction target;
                       37720494 invoked a nonexistent package __main__. All were
                       diagnosed and corrected before the memory experiments.
+                      T016 jobs 37722631 and 37722668 then set ELAN_HOME to the
+                      scrubbed launcher-only directory and failed before candidate
+                      execution. Leave ELAN_HOME unset to use the verified installed
+                      toolchain; corrected job 37724510 passed.
 
 ### 1b. Tillicum facts (public policy discovery, 2026-07-25)
 
@@ -165,7 +174,11 @@ must implement every step below and fail closed at the first mismatch:
    extracted git commit and clean state before running any local code.
 6. Export PYTHONPATH from the extraction and call the installed proof-faithfulness
    entry point. Do not rely on a package __main__ module.
-7. Keep child RLIMIT_AS at 8,192 MiB, retain the 1,200/600-second limits, request at
+7. Put the verified Elan launcher on PATH, leave `ELAN_HOME` unset, and require
+   `lake --version` to report Lean 4.15.0 before warm-up. Setting `ELAN_HOME` to the
+   launcher-only scrubbed directory is invalid. An alternative `ELAN_HOME` is allowed
+   only after verifying it contains the pinned toolchain binaries.
+8. Keep child RLIMIT_AS at 8,192 MiB, retain the 1,200/600-second limits, request at
    least 16 GiB SLURM memory, and persist results only to original shared outputs/.
 
 Representative checks:
@@ -179,6 +192,8 @@ Representative checks:
     /usr/sbin/unsquashfs -d "${EXTRACT_ROOT}" "${LOCAL_ARCHIVE}"
     test "$(git -C "${EXTRACT_ROOT}" rev-parse HEAD)" = "${EXPECTED_COMMIT}"
     test -z "$(git -C "${EXTRACT_ROOT}" status --porcelain)"
+    unset ELAN_HOME
+    lake --version                              # Lean 4.15.0
 
 The archive is one-time work per immutable commit. Never reuse one whose digest, commit,
 exclusions, or toolchain identity differs from the intended run, and never fall back to

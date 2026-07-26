@@ -1,7 +1,8 @@
 # HUMAN-REVIEW-TODO.md
 
 **Owner:** Tingxuan Huang \
-**Prepared by:** coding agent, 2026-07-25
+**Prepared by:** coding agent, 2026-07-25 \
+**Last engineering update:** 2026-07-26
 
 This is the human-facing review and decision queue for the proof-conditioned
 faithfulness prototype. Every checkbox is human-owned and intentionally unchecked.
@@ -10,9 +11,20 @@ benchmark, scientific interpretation, model slate, spending, or publication clai
 
 ## Current state in one minute
 
-- Current engineering commits are 08ceba85 and dc7e348. The focused integration review
-  fixed blocking evaluation-provenance, theorem-only, trusted-check persistence, and
-  crash-recovery defects. Deferred deep reviews remain pending.
+- Immutable job `37722531` passed `lake build`, 271 pytest tests, Ruff, Pyright, and
+  exact offline S4 planning on commit `a65e9d8`. S1-S5 are green on fixtures/mock
+  transport; no paid API request or model-weight download occurred.
+- Trusted node-local job `37724510` accepted the exact `036-A` statement/body with only
+  allowed axioms and persisted S3. Its provisional `automation_bypass` classification
+  requires human interpretation. Nine other submitted routes have saved Lean errors;
+  three contain `sorry`. Gate P, Gate S, and every candidate Status remain open.
+- A credential pasted into chat was not used, stored, or logged and must be
+  revoked/rotated. Exact official provider/model/billing details and a matching
+  machine-readable approval remain human inputs before one paid API smoke.
+- Current engineering commits through `a65e9d8` fix evaluation provenance,
+  theorem-only handling, trusted-check persistence, crash recovery, the 600/1,200-second
+  limits, the 8,192 MiB Lean boundary, and narrow-terminal CLI guidance. Deferred deep
+  reviews remain pending.
 - Klone full-Mathlib execution now requires a checksummed LZ4 snapshot extracted into
   private node-local /tmp. GPFS job 37717888 timed out with almost no CPU use. Local
   4 GiB job 37720527 exited 139, while unlimited 37720766 and bounded 8 GiB 37721113
@@ -65,9 +77,10 @@ uv run python -c \
 lake --version
 ```
 
-- [ ] Run the full engineering gauntlet once. This is especially important because the
-  agent observed `246 passed, 1 failed`, fixed the stale fixture, and ran only the
-  targeted regression afterward.
+- [ ] Independently rerun the full engineering gauntlet. Agent job `37722531` already
+  passed it on immutable commit `a65e9d8` with 271 tests, clean Ruff, zero-error
+  Pyright, and a green Lean build; this unchecked item is human reproduction, not
+  missing agent verification.
 
 ```bash
 uv run pytest -q
@@ -76,8 +89,9 @@ uv run pyright
 lake build
 ```
 
-Expected current result: all four commands pass. Treat any failure as a new blocker and
-record the exact command, commit, host, module state, exit code, and diagnostic.
+Expected current result: 271 tests and all four commands pass. Treat any failure as a
+new blocker and record the exact command, commit, host, module state, exit code, and
+diagnostic.
 
 ## Manual Lean checks
 
@@ -127,12 +141,15 @@ Expected current summary is `total=10 compiles=1 no_sorry_and_compiles=1`. The a
 route is `036-A`, whose axiom output is `[propext, Quot.sound]`. The complete prior
 record is `outputs/reference-proof-checks/37700033/results.json`.
 
-- [ ] Run S3 only on the compiling `036-A` route, then manually inspect whether the
-  reported induction evidence matches the intended constructive induction strategy.
-  Failed or `sorry` routes must skip S3 rather than receive invented dependency labels.
-  There is currently no public reference-proof S3 CLI. Decide whether to promote a
-  reviewed command or use a controlled one-off caller of `probe_dependencies`; do not
-  improvise or manually invent a machine classification.
+- [ ] Inspect the persisted S3 report for `036-A` from job `37724510`. It reports
+  `automation_bypass`, tactic evidence `induction`/`explicit_local`/`automation`, and
+  local facts `hcases=true`, `hn11=false`, `hsmall=true`. Decide whether the actual
+  `omega` calls are only the arithmetic side-goal uses permitted by the Route-A brief,
+  and whether the proof realizes the intended constructive strong-induction strategy.
+  This is human interpretation; do not promote the machine label into a rejection.
+  Failed or `sorry` routes correctly skipped S3. The checksummed report and exact paths
+  are in `docs/T016-REFERENCE-PROOF-REPORT.md`. Also decide whether the controlled
+  host-local runner should become reviewed repository tooling.
 
 ## Model and generation code review
 
@@ -262,15 +279,21 @@ code or running the affected stage.
 - [ ] **Node-local execution policy:** Review the commit-bound LZ4 SquashFS path:
   checksum before copy, checksum after copy, unique mode-0700 /tmp parent, absolute
   unsquashfs, extracted commit/clean checks, signal cleanup, exclusions, and shared
-  result persistence. Decide whether the scripts become reviewed repository tooling.
+  result persistence. Confirm the runner leaves `ELAN_HOME` unset and verifies
+  `lake --version`; jobs `37722631`/`37722668` showed that pointing `ELAN_HOME` at the
+  launcher-only directory fails before proof execution. Decide whether the scripts
+  become reviewed repository tooling.
 - [ ] **Snapshot retention:** Decide cache ownership, retention, quota monitoring, and
   deletion policy for per-commit archives. Never reuse an archive across a digest,
   commit, toolchain, or exclusion change.
 - [ ] **S5 integration review:** Inspect 08ceba85, especially verified terminal Lean
   artifacts, theorem-only provenance, crash recovery, and rejection of unchecked text.
-- [ ] **API intake remains gated:** T016 and the engineering gauntlet finish first.
-  Then select the provider and deliver its key only through the private environment
-  mechanism. A matching approvals/ record remains mandatory before any paid request.
+- [ ] **API intake remains gated:** T016 agent processing and the engineering gauntlet
+  are complete. Revoke/rotate the credential exposed in chat; it was not used. Identify
+  the official provider/product, endpoint, auth variable, wire model ID, pricing/usage
+  schema, billing account/region, and retry contract. Deliver only the rotated value
+  through the private environment mechanism. A matching `approvals/` record remains
+  mandatory before one paid smoke request.
 
 - [ ] **Timeout implementation review:** The owner decided on one fixed-source Mathlib
   warm-up per batch (1,200-second ceiling) and 600 seconds per fresh candidate after job

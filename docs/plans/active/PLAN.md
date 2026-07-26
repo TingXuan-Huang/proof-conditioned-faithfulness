@@ -44,6 +44,24 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
 
 ## Progress
 
+- 2026-07-26: The immutable node-local gauntlet is green on commit `a65e9d8`.
+  Snapshot build job `37722524` completed in 5:37; gauntlet job `37722531`
+  completed in 4:01 with exit `0:0`. The fixed-source warm-up succeeded in
+  114.798 seconds, `lake build` passed with the existing unused-variable warning,
+  full pytest passed `271` tests in 67.55 seconds, Ruff passed, and Pyright reported
+  zero errors/warnings. Offline S4 planning produced exactly 45 proof-conditioned plus
+  15 theorem-only requests at `$0`; `plan-check` returned `valid: true` and the Tier-2
+  increment `+30/+0`.
+- 2026-07-26: T016 agent-side screening is complete. Jobs `37722631` and `37722668`
+  failed before candidate execution because the one-off runner pointed `ELAN_HOME` at
+  the launcher-only scrubbed directory; this is operational evidence, not proof
+  evidence. After matching the green gauntlet's Elan resolution, job `37724510`
+  completed in 1:39 with exit `0:0`. For `036-A`, the 62.361-second warm-up passed,
+  trusted S2 accepted the exact statement/body in 4.781 seconds with no prohibited
+  tokens and only `Quot.sound`/`propext`, and S3 persisted checksummed dependency
+  evidence. S3's provisional heuristic classified the route as `automation_bypass`;
+  humans must decide whether its permitted side-goal `omega` use still realizes the
+  intended strong-induction strategy. Gate S and candidate Status remain unchanged.
 - 2026-07-26: Node-local gauntlet job 37722218 completed the fixed-source Mathlib
   warm-up in 82.604 seconds and passed `lake build`; pytest reported 270 passed and
   one failure. The failure was limited to CLI presentation: a long changed-output path
@@ -51,11 +69,12 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
   precedes the path, and the targeted 40-column long-path regression plus all six CLI
   tests pass. No readiness gate, candidate status, or human approval changes as a
   result.
-- 2026-07-26: Current local engineering commits are 08ceba85 and dc7e348. The first
-  fixed blocking S5/cross-stage provenance, theorem-only, trusted-check persistence,
-  and crash-recovery defects. The second recorded the human decision for a 600-second
-  candidate timeout plus a separate 1,200-second warm-up. These changes do not alter
-  any candidate Status, import identity, human approval, or readiness gate.
+- 2026-07-26: Current local engineering commits are `08ceba85`, `dc7e348`,
+  `6a65e5e`, and `a65e9d8`. They respectively fix blocking S5/cross-stage provenance
+  and crash recovery, implement the human-selected 600/1,200-second limits, raise the
+  bounded Lean address space to 8,192 MiB, and preserve the CLI force hint in narrow
+  terminals. These changes do not alter any candidate Status, import identity, human
+  approval, or readiness gate.
 - 2026-07-26: Node-local memory experiments set the bounded checker, dependency probe,
   generation-check, and warm-up address-space default to 8,192 MiB. Old-limit job
   37720527 exited 139 after 73.87 seconds at 4,096 MiB. Unlimited diagnostic 37720766
@@ -65,10 +84,10 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
   not invalid proofs.
 - 2026-07-26: LZ4 snapshot 37719636 completed in 25:17. The current Klone Lean path
   verifies its checksum and commit, copies and extracts into a unique private /tmp
-  directory, and writes durable evidence back to shared outputs/. T016 remains open
-  until 036-A completes persisted S2/S3 through this path. The API smoke remains open;
-  no API request or model download has run, and matching human approval is still
-  mandatory.
+  directory, and writes durable evidence back to shared outputs/. T016's agent-side
+  `036-A` S2/S3 run is now complete; its human strategy/faithfulness decision remains
+  open. The API smoke remains open; no API request or model download has run, and
+  matching human approval is still mandatory.
 
 - [x] 2026-07-25: Human timeout decision implemented after clean-commit SLURM job
       `37715755` repeatedly reached the old 120-second boundary. Normative S2 candidate
@@ -107,8 +126,10 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
       proposed 001/033/036/040/041 set remains draft and is not promoted here.
 - [ ] 2026-07-25: waiting on human: faithfulness approval and any decision to replace
       the nine non-compiling submitted reference routes. Gate S remains open. Real-proof
-      compile evidence now exists for all ten routes; S3 remains to be run only on the
-      compiling `036-A` route before the T016 report is complete.
+      compile evidence now exists for all ten routes; trusted S2/S3 evidence for
+      `036-A` is checksummed under job `37724510`. Humans must interpret its provisional
+      `automation_bypass` classification and decide whether to replace or repair the
+      other routes.
 - [ ] 2026-07-25: waiting on human: S3 workshop metric choice. Explicit-step
       utilization remains the provisional implementation; full graph extraction is not
       frozen.
@@ -228,6 +249,12 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
   unsupported zstd in 37719618, missing unsquashfs on restricted PATH in 37719638,
   a pre-created extraction target in 37720472, and an invalid package __main__
   invocation in 37720494. These are harness failures, not proof outcomes.
+- 2026-07-26: T016 exposed a fifth staging configuration error after the general
+  gauntlet was green: setting `ELAN_HOME` to the scrubbed launcher directory made Elan
+  search for a nonexistent toolchain there. Jobs `37722631` and `37722668` failed before
+  candidate execution. Leaving `ELAN_HOME` unset uses the verified installed toolchain,
+  and retry `37724510` completed warm-up, S2, and S3. The failed jobs are not evidence
+  about `036-A`.
 
 - 2026-07-25: Review found that source/binder-name matching was not sound evidence for
   explicit-local utilization: theorem parameters and unrelated shadowed lambdas can use
@@ -291,6 +318,9 @@ New decisions (2026-07-25, prototype engineering checkpoint):
   digest and extracted commit before use, has signal cleanup, and has no unverified
   shared-path fallback. outputs/ and approvals/ are excluded from the image; persistent
   results go to the original shared outputs/ tree.
+- Klone runners use the verified Elan launcher on `PATH` but must not point `ELAN_HOME`
+  at that launcher-only directory. They leave `ELAN_HOME` unset (or explicitly verify a
+  complete alternative toolchain) and confirm `lake --version` before trusted work.
 - The normative child RLIMIT_AS is 8,192 MiB for S2, S3, generation checks, and the
   fixed-source warm-up. SLURM memory is at least 16 GiB. The 600/1,200-second timeouts
   remain unchanged. A signal/resource exit is operational evidence and cannot be

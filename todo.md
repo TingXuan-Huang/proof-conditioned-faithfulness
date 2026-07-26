@@ -43,13 +43,14 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       finds), exclusion list 1-43 + NOTES-library-collapse-catalog.md. File keepers
       as 045+. Optional — do after (or during) the human review pass reveals which
       domains still need low-contamination fills.
-- [ ] T012 (P0) Frontier API key placement — the user provides the key to the server
-      agent only after T016 proof processing and only for an approval-bound API smoke.
-      S4 transports and T011's paid-request permit/refusal tests are complete. Keep the
-      value outside the repo and logs; inject it by environment variable at job
-      submission under RUNBOOK §3. Provider/key confirmation and a matching human-owned
-      approval remain pending. No API request has run; do not request or use a key before
-      T016 and engineering integration are complete.
+- [ ] T012 (P0) Frontier API key placement and approved smoke. T016 agent processing
+      and offline engineering integration are complete. A credential was pasted into
+      chat and was deliberately not used, stored, echoed, or committed; the owner must
+      revoke/rotate it. Before any request, humans must identify the exact official
+      provider/product, endpoint, authentication variable, wire model ID, pricing and
+      usage schema, billing account/region, and place a matching machine-readable
+      approval. Inject only the rotated value by the RUNBOOK §3 server secret path.
+      S4 transports and T011's permit/refusal tests are complete. No API request has run.
 - [ ] T007 (P2) Recruit a second qualified annotator (or explicitly preregister a
       single-annotator + LLM-judge fallback). Blocks the annotation phase.
       See analysis-decisions-pending.md §(f).
@@ -61,20 +62,16 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       SLURM job `37700033`: `036-A` compiled without `sorry` and reported only allowed
       axioms (`propext`, `Quot.sound`); the other nine produced persisted Lean compile
       diagnostics and are skipped under the prototype policy rather than repaired.
-      `033-A`, `041-A`, and `041-B` additionally contain `sorry`. Remaining agent work:
-      run S3 on `036-A`, record the mechanical banned-lemma scan for all routes, and
-      publish the per-route report. Human-owned faithfulness approvals, candidate Status
-      fields, and the proposed Gate-P slate remain unchanged. The owner subsequently set
-      S2 to 600 seconds per candidate after a separate 1,200-second warm-up; any prior
-      120-second timeout is operationally invalid and must not be reported as theorem
-      failure.
-      Current operational state: GPFS warm-up can exceed 1,200 seconds while using
-      almost no CPU. Checksummed LZ4 snapshot 37719636 is the current Klone path. At
-      4 GiB, 37720527 exited 139; unlimited 37720766 and bounded 8 GiB 37721113
-      succeeded at about 4,072,000 KiB maximum RSS. The normative child limit is
-      8,192 MiB and SLURM must request at least 16 GiB. Finish persisted S2/S3 for
-      036-A only after the local runner is revalidated; never reinterpret a resource
-      signal as invalid proof evidence.
+      `033-A`, `041-A`, and `041-B` additionally contain `sorry`. Trusted node-local job
+      `37724510` accepted the exact `036-A` statement/body with allowed axioms and no
+      prohibited tokens, persisted S3 successfully, and passed every artifact checksum.
+      Its provisional S3 classification is `automation_bypass`; humans must interpret
+      whether brief-permitted side-goal `omega` still realizes Route A. The mechanical
+      scan found one contextual brief-ban hit: `041-B` uses `decide`; no contextual hit
+      was recorded for the other nine routes. See `docs/T016-REFERENCE-PROOF-REPORT.md`.
+      **Remaining status is human-owned:** approve/reject `036-A`, decide whether to
+      repair/replace the nine failures, and update Gate S/candidate Status only through
+      human review. The item stays open; agent processing does not approve it.
 - [ ] T017 (P1) Deferred deep review — S2/S3 trusted checking and dependency analysis.
       **Status:** pending. **Scope/stage/files:** S2-S3;
       `ProofFaithfulness/{Audit,Dependency}.lean`, `src/proof_faithfulness/lean/**`, and
@@ -146,14 +143,14 @@ The actionable review order and exact manual commands are maintained in
    preregister the documented fallback. Humans freeze the rubric, label proofs, and
    adjudicate disagreements. The T019 code review follows representative pilot exports
    and verifies blinding, provenance, and statistics rather than replacing annotation.
-5. **Process the generated Lean reference proofs for 001/033/036/040/041 (T016):**
-   compile screening is complete: one route compiles and nine are recorded data-level
-   failures that will not be repaired for this prototype. Finish S3 for `036-A` and the
-   banned-lemma report. Humans retain approval and Status ownership and may later decide
-   whether Gate S needs replacement references.
-6. **Obtain the frontier API key and run the approved API smoke slice (T012):** after
-   item 5, receive the key only via the server secret-delivery path and run the API smoke
-   only when the user has placed a matching machine-readable approval record.
+5. **Human disposition of generated Lean references (T016):** agent compilation,
+   trusted `036-A` S2/S3, and the banned-lemma report are complete. Humans retain
+   approval and Status ownership, must interpret `036-A`, and must decide whether Gate S
+   needs repaired or replacement references for the nine failed routes.
+6. **Rotate/configure the frontier credential and run one approved API smoke (T012):**
+   identify the official provider contract, rotate the chat-exposed credential, deliver
+   it only through the server secret path, and place a matching machine-readable
+   approval before the harness may issue one paid request.
 
 ## Done
 

@@ -10,6 +10,75 @@ just the code.
 
 ---
 
+### 2026-07-26 - Reach the pre-human prototype checkpoint
+
+- **Scope:** Final immutable integration gauntlet, trusted `036-A` reference check,
+  dependency evidence, operations correction, and human handoff. No paid request or
+  model download ran, and no human-owned gate, candidate Status, or approval changed.
+- **Exact gauntlet:** Commit `a65e9d8fb34a689e8e3b9af5859497e4b0f43d4a` was
+  packaged by job `37722524` (COMPLETED, 5:37) and exercised node-locally by job
+  `37722531` (COMPLETED, exit `0:0`, 4:01). Warm-up passed in 114.798 seconds;
+  `lake build` passed with the existing unused-variable warning; `uv run pytest -q`
+  passed 271 tests in 67.55 seconds; Ruff passed; Pyright reported 0 errors, 0 warnings,
+  0 information messages. Offline S4 `plan` reported 45 proof-conditioned plus 15
+  theorem-only requests, 60 total at `$0`; `plan-check` returned `valid: true` and
+  Tier-2 increment `+30/+0`.
+- **T016 result:** The ten-route diagnostic record remains job `37700033`: one route
+  compiled (`036-A`), nine had Lean elaboration/type errors, and routes `033-A`,
+  `041-A`, and `041-B` contain `sorry`. The trusted follow-up job `37724510` completed
+  in 1:39 with exit `0:0`. Its fixed-source warm-up passed in 62.361 seconds. S2 accepted
+  the exact `036-A` statement/body in 4.781 seconds, found no prohibited token, matched
+  the statement hash, and reported only allowed axioms `Quot.sound` and `propext`. S3
+  succeeded and persisted its dependency report. Every one of the ten artifact
+  sidecars was independently rehashed successfully; the top-level summary digest is
+  `4a8564435f2a6e49500e647ae31516f6047e5c8d84e264a7de2dcf1e4cf584ee`.
+- **S3 interpretation boundary:** The provisional classifier labels `036-A`
+  `automation_bypass` and reports `induction`, `explicit_local`, and `automation`
+  evidence. Local facts `hcases` and `hsmall` are used; `hn11` is not retained in the
+  elaborated proof term. The brief permits `omega` for arithmetic side goals, so this
+  machine label is a human review question, not a faithfulness rejection and not a
+  Gate-S decision.
+- **Mechanical brief scan:** No contextual route-ban hit was found for nine routes.
+  `041-B` contains `decide`, which its brief bans in both routes. Common no-`sorry`
+  screening found three affected routes and four literal occurrences. `040-A/B` use
+  `decide` only for finite base facts, and `001-A` uses `norm_num` only for a small
+  coprimality fact; their briefs prohibit those tactics only when they close the main
+  goal. These contextual judgments remain available for human confirmation.
+- **Operational correction:** T016 attempts `37722631` and `37722668` failed before
+  candidate execution because the one-off job set `ELAN_HOME` to the scrubbed
+  launcher-only directory. That directory does not contain the pinned toolchain.
+  Leaving `ELAN_HOME` unset matches the green gauntlet and resolves Lean 4.15.0 through
+  the verified installed toolchain. These two jobs are harness failures, never proof
+  failures.
+- **Review checkpoint:** Blocking S2/S3 resource classification and cleanup concerns,
+  S4 spend/approval/resume defects, and S5 provenance/blinding/persistence defects were
+  fixed and regression-tested in the recorded commits. The quick prototype review is
+  sufficient only for this checkpoint. Deferred full reviews T017-T020 remain pending.
+- **Publication:** The worktree entering this documentation update was clean and local
+  `main` was 14 commits ahead of `origin/main`. Prior HTTPS credential, SSH denial, and
+  execution-policy blockers remain recorded in the PLAN. This checkpoint will attempt
+  a normal push after commit without changing credentials or remote configuration.
+- **Waiting on human:** Gate P/Gate S and all candidate Status fields; interpretation of
+  `036-A` and replacement/repair of nine failed routes; S3 metric and T006 analysis
+  freezes; T007 annotation staffing; T001 artifact ownership; exact provider/model and
+  billing facts; rotation of the credential exposed in chat; and a matching
+  machine-readable approval before any paid API smoke.
+
+#### Error counter at the pre-human checkpoint
+
+| Category | Count | Status |
+| --- | ---: | --- |
+| S5/cross-stage correctness blockers | 4 | fixed in `08ceba85` |
+| S2/S3 timeout and memory contract changes | 2 | fixed in `dc7e348`/`6a65e5e` |
+| GPFS fixed-source warm-up timeout | 1 | diagnosed; node-local staging works |
+| Snapshot/staging failures before final T016 | 7 | six corrected scripts/jobs plus one 4 GiB resource failure |
+| Narrow-terminal force-hint regression | 1 | fixed in `a65e9d8` |
+| Submitted routes with Lean compile errors | 9 | recorded data outcomes; S3 skipped |
+| Submitted routes containing `sorry` | 3 | four occurrences; human replacement/repair pending |
+| Brief-ban hits | 1 | `041-B` uses banned `decide`; human action pending |
+| Trusted `036-A` S2/S3 failures | 0 | accepted and checksummed in job `37724510` |
+| Paid API requests | 0 | rotated key, provider details, and approval required |
+
 ### 2026-07-26 - Raise the bounded Lean address space and stage Mathlib locally
 
 - **Tier:** prototype trust-boundary and operations correction
