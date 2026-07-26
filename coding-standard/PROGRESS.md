@@ -55,9 +55,11 @@ just the code.
   fixed and regression-tested in the recorded commits. The quick prototype review is
   sufficient only for this checkpoint. Deferred full reviews T017-T020 remain pending.
 - **Publication:** The worktree entering this documentation update was clean and local
-  `main` was 14 commits ahead of `origin/main`. Prior HTTPS credential, SSH denial, and
-  execution-policy blockers remain recorded in the PLAN. This checkpoint will attempt
-  a normal push after commit without changing credentials or remote configuration.
+  `main` was 14 commits ahead of `origin/main`. Commit `1d6d3aa` recorded the checkpoint,
+  making the branch 15 commits ahead. A normal `git push origin main` was attempted
+  without changing credentials or remote configuration; execution policy rejected it
+  before network access because `origin/main` is an unverified external default branch.
+  The local commits remain intact and unpushed.
 - **Waiting on human:** Gate P/Gate S and all candidate Status fields; interpretation of
   `036-A` and replacement/repair of nine failed routes; S3 metric and T006 analysis
   freezes; T007 annotation staffing; T001 artifact ownership; exact provider/model and

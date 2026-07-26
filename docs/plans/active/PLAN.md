@@ -143,8 +143,10 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
       HTTPS remote; `gh` is unavailable and the previously tested SSH path was denied.
       A later attempt to push proof-screening commits `218d80f` and `57bafe6` was stopped
       before network access by the execution policy because `origin/main` is an
-      unverified external default branch. Local checkpoint commits are preserved, and no
-      credential or remote configuration was changed.
+      unverified external default branch. The same policy rejected the final
+      `1d6d3aa` checkpoint push before network access on 2026-07-26. Local checkpoint
+      commits are preserved, `main` remains ahead of the remote, and no credential or
+      remote configuration was changed.
 - [x] 2026-07-22: Original design interview, related-work verification, first ExecPlan.
 - [x] 2026-07-24: Project repo scaffolded (`proof-conditioned-faithfulness/`), agent-first
       layout, coding-standard kit, AGENTS.md map, git initialized.
