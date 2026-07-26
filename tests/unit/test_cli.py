@@ -5,7 +5,9 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
+import proof_faithfulness.cli as cli_module
 from proof_faithfulness.cli import app
+from proof_faithfulness.lean import LeanWarmupResult
 
 runner = CliRunner()
 
@@ -21,6 +23,45 @@ def test_top_level_generation_plan_reports_exact_tier_one_counts() -> None:
     }
     assert payload["total_requests"] == 60
     assert payload["split_status"] == "proposed"
+
+
+def test_lean_warmup_uses_separate_diagnostic_timeout(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    observed: dict[str, object] = {}
+
+    def warmup(**kwargs) -> LeanWarmupResult:
+        observed.update(kwargs)
+        return LeanWarmupResult(
+            exit_code=0,
+            stdout="",
+            stderr="",
+            wall_time_seconds=1.25,
+        )
+
+    monkeypatch.setattr(cli_module, "warm_mathlib_cache", warmup)
+    result = runner.invoke(
+        app,
+        [
+            "env",
+            "lean-warmup",
+            "--project-root",
+            str(tmp_path),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert json.loads(result.output) == {
+        "exit_code": 0,
+        "setup_error": None,
+        "success": True,
+        "timed_out": False,
+        "wall_time_seconds": 1.25,
+    }
+    assert observed["project_root"] == tmp_path
+    assert observed["timeout_seconds"] == 1200.0
+    assert observed["memory_limit_mb"] == 4096
 
 
 def test_schema_export_requires_force_for_changed_output(tmp_path: Path) -> None:

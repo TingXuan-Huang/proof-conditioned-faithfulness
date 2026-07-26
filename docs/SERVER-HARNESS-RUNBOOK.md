@@ -61,9 +61,10 @@ for a stateless agent arriving with only a fresh clone.
                       cpu-g2 node in job 37696157. After repeated/same-node warming,
                       diagnostic job 37700033 used 113 s for its explicit warm-up and
                       roughly 94-120 s per route. Do not infer theorem invalidity from
-                      a cold-import timeout. The owner must freeze whether production
-                      S2 uses pre-warming, a higher limit, or narrower imports; current
-                      normative S2 remains 120 s and extended limits are diagnostic.
+                      a cold-import timeout. After job 37715755 repeatedly reached the
+                      old 120 s boundary, the owner set normative S2 to a fixed-source
+                      warm-up (1,200 s separate ceiling) and 600 s per fresh candidate.
+                      Import narrowing remains a separate identity-changing decision.
 
 ### 1b. Tillicum facts (public policy discovery, 2026-07-25)
 
@@ -122,6 +123,9 @@ gets purged mid-experiment — check quota/purge policy first).
                                              # Mathlib cache for the pinned commit
     lake build                               # expect: no errors, cache-served
 
+    uv run proof-faithfulness env lean-warmup \
+      --project-root . --timeout-seconds 1200
+                                             # fixed source; no candidate/model output
 `uv sync --frozen` fails if uv.lock is missing or stale — that means the clone is bad
 or someone edited pyproject.toml without re-locking on the laptop; stop and report,
 do not run `uv lock` on the server (the lockfile is laptop-owned).

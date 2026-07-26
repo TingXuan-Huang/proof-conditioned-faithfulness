@@ -10,6 +10,25 @@ just the code.
 
 ---
 
+### 2026-07-25 — Adopt 600-second trusted-check timeout after SLURM boundary evidence
+
+- **Tier:** prototype trust-boundary correction
+- **File(s):** trusted Lean checker, root CLI, checker tests, PLAN, runbook, human TODO,
+  and `todo.md` T016/T017.
+- **What:** The owner changed normative S2 from 120 to 600 seconds per fresh candidate.
+  Batch preflight runs a separate fixed-source Mathlib/audit warm-up with a 1,200-second
+  ceiling before candidates; the warm-up contains no model output.
+- **Why:** Clean-commit CPU job `37715755` passed `lake build` but emitted 18 pytest
+  failure markers at roughly successive 120-second boundaries before cancellation.
+  Pytest had not printed tracebacks, so exact failures were not observed; old timeout
+  evidence is operationally invalid, never theorem invalidity.
+- **How it works:** `DEFAULT_TIMEOUT_SECONDS` is the shared S2/S3/generated-response
+  default. `proof-faithfulness env lean-warmup` uses the existing network-isolated,
+  resource-bounded subprocess with its own default. Timeout fixtures pass explicit
+  millisecond-scale limits. A fresh clean-commit full gauntlet remains required.
+- **Human boundary:** This records the timeout decision only. It does not approve Gate P,
+  Gate S, a candidate Status, an import change, or proof faithfulness.
+
 ### 2026-07-25 — Consolidate the engineering and human-review handoff
 
 - **Tier:** exploratory documentation checkpoint
@@ -133,8 +152,9 @@ just the code.
 
 #### Human-gated questions carried forward
 
-- Decide whether S2's 120 seconds includes a cold import, follows a required warm-up, or
-  should change. Decide separately whether canonical pilot imports remain
+- The owner decided S2 uses a separate 1,200-second fixed-source warm-up followed by
+  600 seconds per fresh candidate. Verify this on each host. Decide separately whether
+  canonical pilot imports remain
   `import Mathlib` or become minimal imports; import changes affect hashes and experiment
   identity.
 - Decide whether the nine failing reference routes are replaced, repaired by a human,
@@ -164,8 +184,9 @@ just the code.
   proof, rejects or diagnoses invalid inputs, continues after failures, and persists
   evidence. Repairing the submitted proofs is outside this prototype checkpoint.
 - **How it works:** Each route is written to a fresh file, compiled with Lean 4.15.0,
-  and followed by `#print axioms`. The extended limits are diagnostic only and do not
-  change S2's normative 120-second contract. `036-A` reported only allowed axioms
+  and followed by `#print axioms`. At the time, the extended limits were diagnostic;
+  the owner later adopted the same 600-second candidate ceiling plus a separate
+  fixed-source warm-up as the normative S2 contract. `036-A` reported only allowed axioms
   (`propext`, `Quot.sound`). No network, paid API request, GPU, or model download was used.
 - **Reused pattern or new one?** Reuses the S2 fresh-file and axiom-audit boundary; adds
   an operational cache warm-up/extended-time diagnostic for umbrella `import Mathlib`

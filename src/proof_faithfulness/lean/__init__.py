@@ -8,6 +8,9 @@ from proof_faithfulness.lean.artifacts import (
     persist_check_outcome,
 )
 from proof_faithfulness.lean.checker import (
+    DEFAULT_MEMORY_LIMIT_MB,
+    DEFAULT_TIMEOUT_SECONDS,
+    DEFAULT_WARMUP_TIMEOUT_SECONDS,
     FAILURE_AXIOM_AUDIT,
     FAILURE_EXTRACTION,
     FAILURE_MULTIPLE_BLOCKS,
@@ -22,9 +25,11 @@ from proof_faithfulness.lean.checker import (
     FAILURE_TYPE,
     CheckOutcome,
     LeanCandidateSpec,
+    LeanWarmupResult,
     check_candidate,
     hash_lean_statement,
     network_isolation_probe,
+    warm_mathlib_cache,
 )
 from proof_faithfulness.lean.dependency import (
     BindingUse,
@@ -35,6 +40,9 @@ from proof_faithfulness.lean.dependency import (
 )
 
 __all__ = [
+    "DEFAULT_MEMORY_LIMIT_MB",
+    "DEFAULT_TIMEOUT_SECONDS",
+    "DEFAULT_WARMUP_TIMEOUT_SECONDS",
     "FAILURE_AXIOM_AUDIT",
     "FAILURE_EXTRACTION",
     "FAILURE_MULTIPLE_BLOCKS",
@@ -53,6 +61,7 @@ __all__ = [
     "DependencyReport",
     "LeanArtifactError",
     "LeanCandidateSpec",
+    "LeanWarmupResult",
     "LocalFactUse",
     "check_and_persist_candidate",
     "check_candidate",
@@ -62,4 +71,5 @@ __all__ = [
     "network_isolation_probe",
     "persist_check_outcome",
     "probe_dependencies",
+    "warm_mathlib_cache",
 ]

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from proof_faithfulness.lean import (
+    DEFAULT_TIMEOUT_SECONDS,
     FAILURE_AXIOM_AUDIT,
     FAILURE_MULTIPLE_BLOCKS,
     FAILURE_PROHIBITED_AXIOM,
@@ -41,7 +42,7 @@ def _check(
     spec: LeanCandidateSpec,
     fixture_name: str,
     *,
-    timeout_seconds: float = 120.0,
+    timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
 ):
     return check_candidate(
         spec,

@@ -31,7 +31,8 @@ FAILURE_TIMEOUT = "timeout"
 FAILURE_AXIOM_AUDIT = "axiom_audit_failed"
 FAILURE_SANDBOX = "sandbox_error"
 
-DEFAULT_TIMEOUT_SECONDS = 120.0
+DEFAULT_TIMEOUT_SECONDS = 600.0
+DEFAULT_WARMUP_TIMEOUT_SECONDS = 1200.0
 DEFAULT_MEMORY_LIMIT_MB = 4096
 DEFAULT_MAX_HEARTBEATS = 2_000_000
 MAX_DIAGNOSTIC_BYTES = 1_048_576
@@ -166,6 +167,22 @@ class CheckOutcome:
 
 
 @dataclass(frozen=True)
+class LeanWarmupResult:
+    """Bounded result of loading the fixed trusted Lean/Mathlib environment."""
+
+    exit_code: int | None
+    stdout: str
+    stderr: str
+    wall_time_seconds: float
+    timed_out: bool = False
+    setup_error: str | None = None
+
+    @property
+    def success(self) -> bool:
+        return self.exit_code == 0 and not self.timed_out and self.setup_error is None
+
+
+@dataclass(frozen=True)
 class _ExtractedCandidate:
     status: str
     body: str | None
@@ -252,6 +269,66 @@ def check_candidate(
         extracted=extracted,
         execution=execution,
         source=source,
+    )
+
+
+def warm_mathlib_cache(
+    *,
+    project_root: Path | None = None,
+    timeout_seconds: float = DEFAULT_WARMUP_TIMEOUT_SECONDS,
+    memory_limit_mb: int = DEFAULT_MEMORY_LIMIT_MB,
+    max_heartbeats: int = DEFAULT_MAX_HEARTBEATS,
+) -> LeanWarmupResult:
+    """Load the fixed trusted Lean environment once before a batch of checks.
+
+    This operation never includes model output. It uses the ordinary network-isolated,
+    resource-bounded Lean subprocess so a cold filesystem cache cannot hang preflight.
+    Candidate checks remain fresh processes with an independent 600-second limit.
+    """
+    if not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
+        raise ValueError("Warm-up timeout must be finite and positive")
+    if memory_limit_mb <= 0:
+        raise ValueError("Warm-up memory limit must be positive")
+    if max_heartbeats <= 0:
+        raise ValueError("Warm-up maxHeartbeats must be finite and positive")
+    started = time.monotonic()
+    lake = shutil.which("lake")
+    if lake is None:
+        return LeanWarmupResult(
+            exit_code=None,
+            stdout="",
+            stderr="",
+            wall_time_seconds=time.monotonic() - started,
+            setup_error="lake executable was not found",
+        )
+    root = project_root if project_root is not None else Path(__file__).resolve().parents[3]
+    source = (
+        "import Mathlib\n"
+        "import ProofFaithfulness.Audit\n"
+        "#check ProofFaithfulness.Audit.parseCandidateTerm\n"
+    )
+    with tempfile.TemporaryDirectory(prefix="proof-faithfulness-warmup-") as temporary:
+        source_path = Path(temporary) / "Warmup.lean"
+        source_path.write_text(source, encoding="utf-8", newline="\n")
+        execution = _execute_sandboxed(
+            [
+                lake,
+                "env",
+                "lean",
+                f"-DmaxHeartbeats={max_heartbeats}",
+                str(source_path),
+            ],
+            cwd=root,
+            timeout_seconds=timeout_seconds,
+            memory_limit_mb=memory_limit_mb,
+        )
+    return LeanWarmupResult(
+        exit_code=execution.exit_code,
+        stdout=execution.stdout,
+        stderr=execution.stderr,
+        wall_time_seconds=execution.wall_time_seconds,
+        timed_out=execution.timed_out,
+        setup_error=execution.setup_error,
     )
 
 

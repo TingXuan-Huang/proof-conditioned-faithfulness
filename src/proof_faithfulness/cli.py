@@ -16,9 +16,15 @@ from proof_faithfulness import __version__
 from proof_faithfulness.artifacts import atomic_write_bytes
 from proof_faithfulness.evaluation.cli import app as evaluation_app
 from proof_faithfulness.generation.cli import generation_app
+from proof_faithfulness.lean import (
+    DEFAULT_MEMORY_LIMIT_MB,
+    DEFAULT_WARMUP_TIMEOUT_SECONDS,
+    warm_mathlib_cache,
+)
 from proof_faithfulness.models.config import compute_adapter_config_hash, load_adapter_config
 from proof_faithfulness.schema import SCHEMA_MODELS
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 app = typer.Typer(help="Build and run proof-conditioned faithfulness experiments.")
 schema_app = typer.Typer(help="Inspect and export versioned data contracts.")
 environment_app = typer.Typer(help="Inspect the local execution environment.")
@@ -100,6 +106,50 @@ def environment_doctor(
         if not output.exists() or output.read_bytes() != content_bytes:
             atomic_write_bytes(output, content_bytes)
     typer.echo(content, nl=False)
+
+
+@environment_app.command("lean-warmup")
+def lean_warmup(
+    project_root: Annotated[
+        Path,
+        typer.Option("--project-root", help="Lake project containing the pinned toolchain."),
+    ] = PROJECT_ROOT,
+    timeout_seconds: Annotated[
+        float,
+        typer.Option("--timeout-seconds", help="Separate diagnostic warm-up ceiling."),
+    ] = DEFAULT_WARMUP_TIMEOUT_SECONDS,
+    memory_limit_mb: Annotated[
+        int,
+        typer.Option("--memory-limit-mb", help="Warm-up address-space ceiling in MiB."),
+    ] = DEFAULT_MEMORY_LIMIT_MB,
+) -> None:
+    """Loads the fixed trusted Mathlib environment before a checker batch."""
+    try:
+        result = warm_mathlib_cache(
+            project_root=project_root,
+            timeout_seconds=timeout_seconds,
+            memory_limit_mb=memory_limit_mb,
+        )
+    except ValueError as error:
+        raise typer.BadParameter(str(error)) from error
+    typer.echo(
+        json.dumps(
+            {
+                "exit_code": result.exit_code,
+                "setup_error": result.setup_error,
+                "success": result.success,
+                "timed_out": result.timed_out,
+                "wall_time_seconds": result.wall_time_seconds,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    if not result.success:
+        diagnostic = (result.stderr or result.stdout).strip()
+        if diagnostic:
+            typer.echo(diagnostic, err=True)
+        raise typer.Exit(code=1)
 
 
 @model_app.command("inspect")

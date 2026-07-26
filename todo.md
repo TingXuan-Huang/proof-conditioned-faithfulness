@@ -63,15 +63,19 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       `033-A`, `041-A`, and `041-B` additionally contain `sorry`. Remaining agent work:
       run S3 on `036-A`, record the mechanical banned-lemma scan for all routes, and
       publish the per-route report. Human-owned faithfulness approvals, candidate Status
-      fields, and the proposed Gate-P slate remain unchanged.
+      fields, and the proposed Gate-P slate remain unchanged. The owner subsequently set
+      S2 to 600 seconds per candidate after a separate 1,200-second warm-up; any prior
+      120-second timeout is operationally invalid and must not be reported as theorem
+      failure.
 - [ ] T017 (P1) Deferred deep review — S2/S3 trusted checking and dependency analysis.
       **Status:** pending. **Scope/stage/files:** S2-S3;
       `ProofFaithfulness/{Audit,Dependency}.lean`, `src/proof_faithfulness/lean/**`, and
       their fixtures/integration tests. **Standards:** full
       `coding-standard/CODE_REVIEW.md` plus `coding-standard/style/research.md` pass.
       **Known risks/questions:** sandbox portability, diagnostic-marker provenance,
-      parser/category normalization, and regressions around theorem-parameter-type lets
-      versus candidate-introduced local facts. **Prerequisites:** stable pilot Lean
+      parser/category normalization, warm-up effectiveness across GPFS/hosts, enforcement
+      of separate 1,200/600-second limits, and regressions around theorem-parameter-type
+      lets versus candidate-introduced local facts. **Prerequisites:** stable pilot Lean
       imports, representative T016 proofs, and a human-frozen S3 utilization metric.
       **Human/code boundary:** humans define the A/B strategy signatures, decide what
       constitutes meaningful strategy use, and resolve ambiguous proofs. The deep code

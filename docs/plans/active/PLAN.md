@@ -44,6 +44,13 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
 
 ## Progress
 
+- [x] 2026-07-25: Human timeout decision implemented after clean-commit SLURM job
+      `37715755` repeatedly reached the old 120-second boundary. Normative S2 candidate
+      checks now allow 600 seconds, after one fixed-source Mathlib warm-up with a
+      separate 1,200-second ceiling. The canceled job's 18 failure markers had no
+      terminal traceback and are operationally invalid as theorem failures. This
+      changes no imports, human approvals, candidate Status, or Gate status; a fresh
+      full gauntlet is required.
 - [x] 2026-07-25: Fixture-backed S1-S5 engineering checkpoint complete. All stage Exit
       criteria are green without network access or paid requests: S2 `lake build` passed
       and the trusted-checker suite passed 17 tests; S3 passed 13 dependency-probe tests;
@@ -255,13 +262,15 @@ New decisions (2026-07-25, prototype engineering checkpoint):
   extensibility polish. None invalidates the exact fixture exits, but each must be
   revisited before its corresponding production or publish claim.
 - Reference-screening follow-up is a HUMAN GATE, not an agent-side timeout tweak. The
-  current S2 contract remains a 120-second fresh-process wall clock. Before Gate S, the
-  owner must decide whether that clock includes a cold `import Mathlib`, follows a
-  required warm-up, or increases; whether pilot imports remain the umbrella `Mathlib`
+  owner decided that S2 uses one fixed-source Mathlib warm-up per batch (separate
+  1,200-second ceiling), followed by a 600-second wall clock for each fresh candidate
+  process. Job `37715755` repeatedly reached the old boundary; those 120-second outcomes
+  are operationally invalid, not evidence that a theorem is false. The owner must still
+  decide whether pilot imports remain the umbrella `Mathlib`
   import or become minimal candidate-specific imports; and whether the nine failing
   reference routes are replaced, repaired by a human, or remove their pair. Import
-  changes alter hashes and experiment identity. The 1,200-second warm-up/600-second
-  route limits used by job `37700033` are diagnostic evidence only.
+  changes alter hashes and experiment identity. Gate S and candidate Status remain
+  human-owned.
 
 New decisions (2026-07-24, from the plan-restructuring walkthrough):
 
@@ -528,12 +537,15 @@ header + exact benchmark declaration; model supplies only the proof body (full
 declarations accepted only when the normalized header hash matches exactly). Extractor
 may strip Markdown fences and select one unambiguous block; it may NOT add imports,
 repair syntax, or choose among multiple bodies. Execution: fresh process, no network,
-120 s wall clock, 4 GB provisional memory limit, finite declared heartbeats. Reject
+600 s wall clock, 4 GB provisional memory limit, finite declared heartbeats. Batch
+preflight first runs a fixed-source Mathlib warm-up with a separate 1,200 s ceiling. Reject
 sorry/admit/sorryAx/custom axioms/unsafe/native trust bypasses; run #print axioms
 (allow-list: propext, Classical.choice, Quot.sound; fail closed on unknown). Normalized
 failure categories. Tests: valid, syntax-invalid, type-invalid, timeout, statement-
 changed, sorry, custom-axiom, multi-block, allowed-classical.
-Exit S2: `lake build` green; `uv run pytest tests/integration/test_lean_checker.py -q`
+Exit S2: `lake build` green; `uv run proof-faithfulness env lean-warmup --project-root .
+--timeout-seconds 1200` green; then
+`uv run pytest tests/integration/test_lean_checker.py -q`
 green with one fixture per category above, each asserting the exact normalized failure
 category (not just pass/fail); the sorry and custom-axiom fixtures MUST be rejected.
 

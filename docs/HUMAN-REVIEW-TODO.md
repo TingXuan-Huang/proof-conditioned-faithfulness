@@ -245,9 +245,11 @@ Every item below changes the scientific contract, experiment identity, cost expo
 or interpretation. Record the answer in the active plan's Decision Log before changing
 code or running the affected stage.
 
-- [ ] **Timeout semantics:** Should S2's normative 120-second wall clock include a cold
-  `import Mathlib`, start after a required environment warm-up, or be increased? The
-  current default remains 120 seconds; 1,200/600 seconds were diagnostic limits only.
+- [ ] **Timeout implementation review:** The owner decided on one fixed-source Mathlib
+  warm-up per batch (1,200-second ceiling) and 600 seconds per fresh candidate after job
+  `37715755` repeatedly reached 120 seconds. Manually verify the command, timeout
+  classification, and persisted diagnostics; do not reinterpret old timeouts as theorem
+  failures or treat this unchecked review item as Gate S approval.
 - [ ] **Import policy:** Should pilot statements keep the umbrella `import Mathlib`, or
   use minimal candidate-specific imports? Minimal imports may improve performance and
   tighten dependencies, but changing them changes import hashes and request identity.
