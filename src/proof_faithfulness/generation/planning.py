@@ -362,6 +362,7 @@ def _build_request(
         top_p=model.decoding.top_p,
         max_tokens=model.decoding.max_tokens,
         seed=model.decoding.seed_base + sample_index,
+        extra=model.decoding.extra,
     )
     identity = {
         "schema_version": "1.0",

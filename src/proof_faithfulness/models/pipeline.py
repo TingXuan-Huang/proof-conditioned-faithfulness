@@ -10,7 +10,7 @@ import tempfile
 from decimal import Decimal
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, ValidationError
 
 from proof_faithfulness.models.base import (
     AdapterConfigurationError,
@@ -41,6 +41,7 @@ class PipelineResponse(BaseModel):
     output_tokens: int = Field(ge=0)
     usd_cost: Decimal | None = Field(default=None, ge=0)
     finish_reason: str | None = None
+    metadata: dict[str, JsonValue] = Field(default_factory=dict)
 
 
 class JsonSubprocessAdapter:
@@ -75,6 +76,7 @@ class JsonSubprocessAdapter:
             top_p=self._config.model.decoding.top_p,
             max_tokens=self._config.model.decoding.max_tokens,
             seed_base=self._config.model.decoding.seed_base,
+            extra=self._config.model.decoding.extra,
         )
         scratch_dir = self._config.scratch_dir
         if scratch_dir is not None:
@@ -102,36 +104,57 @@ class JsonSubprocessAdapter:
                 )
                 for token in self._config.command
             ]
+            stdout_path = directory / "stdout.log"
+            stderr_path = directory / "stderr.log"
             try:
-                process = subprocess.Popen(
-                    command,
-                    cwd=self._config.workdir,
-                    env=self._environment(),
-                    start_new_session=True,
-                    stdin=subprocess.DEVNULL,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
+                with (
+                    stdout_path.open("wb") as stdout_file,
+                    stderr_path.open("wb") as stderr_file,
+                ):
+                    process = subprocess.Popen(
+                        command,
+                        cwd=self._config.workdir,
+                        env=self._environment(),
+                        start_new_session=True,
+                        stdin=subprocess.DEVNULL,
+                        stdout=stdout_file,
+                        stderr=stderr_file,
+                    )
             except OSError as error:
                 raise AdapterTransportError(
                     f"Unable to start {self.name} pipeline: {type(error).__name__}"
                 ) from error
             timed_out = False
             try:
-                process.communicate(timeout=self._config.timeout_seconds)
+                process.wait(timeout=self._config.timeout_seconds)
                 return_code = process.returncode
             except subprocess.TimeoutExpired:
                 timed_out = True
                 return_code = None
             finally:
                 _terminate_process_group(process)
+            stdout = _read_bounded_bytes(
+                stdout_path,
+                max_bytes=self._config.max_response_bytes,
+            )
+            stderr = _read_bounded_bytes(
+                stderr_path,
+                max_bytes=self._config.max_response_bytes,
+            )
             if timed_out:
                 raise AdapterTransportError(
                     f"{self.name} pipeline timed out after {self._config.timeout_seconds}s"
                 )
             if return_code != 0:
-                raise AdapterTransportError(
-                    f"{self.name} pipeline exited with status {return_code}"
+                diagnostics, truncated = _bounded_process_diagnostics(
+                    stdout,
+                    stderr,
+                    max_bytes=self._config.max_response_bytes,
+                )
+                raise AdapterResponseError(
+                    f"{self.name} pipeline exited with status {return_code}",
+                    raw_response=diagnostics,
+                    raw_truncated=truncated,
                 )
             if not response_path.is_file():
                 raise AdapterResponseError(f"{self.name} pipeline did not write response.json")
@@ -235,6 +258,31 @@ def _read_limited_file(path: Path, *, max_bytes: int, pipeline_name: str) -> byt
             raw_truncated=True,
         )
     return content
+
+
+def _bounded_process_diagnostics(
+    stdout: bytes,
+    stderr: bytes,
+    *,
+    max_bytes: int,
+) -> tuple[bytes, bool]:
+    payload = json.dumps(
+        {
+            "schema_version": "1.0",
+            "stdout": stdout.decode("utf-8", errors="replace"),
+            "stderr": stderr.decode("utf-8", errors="replace"),
+        },
+        ensure_ascii=True,
+        sort_keys=True,
+    ).encode("utf-8")
+    if len(payload) <= max_bytes:
+        return payload, False
+    return payload[:max_bytes], True
+
+
+def _read_bounded_bytes(path: Path, *, max_bytes: int) -> bytes:
+    with path.open("rb") as stream:
+        return stream.read(max_bytes + 1)
 
 
 class ProofBridgeAdapter(JsonSubprocessAdapter):

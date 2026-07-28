@@ -14,6 +14,7 @@ import yaml
 
 from proof_faithfulness import __version__
 from proof_faithfulness.artifacts import atomic_write_bytes
+from proof_faithfulness.calibration_cli import app as calibration_app
 from proof_faithfulness.evaluation.cli import app as evaluation_app
 from proof_faithfulness.generation.cli import generation_app
 from proof_faithfulness.lean import (
@@ -34,6 +35,7 @@ app.add_typer(environment_app, name="env")
 app.add_typer(model_app, name="model")
 app.add_typer(generation_app)
 app.add_typer(evaluation_app, name="evaluation")
+app.add_typer(calibration_app, name="calibration")
 
 
 @app.callback(invoke_without_command=True)

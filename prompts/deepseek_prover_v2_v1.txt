@@ -1,0 +1,11 @@
+Complete the following Lean 4 code:
+```lean4
+{{imports}}
+
+{{lean_statement}} := by
+  sorry
+```
+
+Before producing the final Lean 4 code, provide a detailed proof plan explaining the
+main proof steps and tactics. Follow this supplied mathematical strategy:
+{{informal_proof}}

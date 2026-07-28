@@ -1,0 +1,29 @@
+key: gpt_oss_120b_calibration
+category: open_weight
+provider: vllm
+model_id: openai/gpt-oss-120b
+revision: b5c939de8f754692c1647ca79fbf85e8c1e70f8a
+base_url: http://127.0.0.1:18101/v1
+api_key_env: null
+chat_template: harmony_native_v1
+decoding:
+  temperature: 1.0
+  top_p: 1.0
+  max_tokens: 4096
+  seed_base: 31000
+  extra:
+    - name: reasoning_effort
+      value: medium
+concurrency: 1
+pricing_usd_per_mtok:
+  input: 0
+  output: 0
+pipeline_commit: null
+context_window: 32768
+dtype: auto
+quantization: mxfp4
+serving_args:
+  - --tensor-parallel-size=1
+  - --gpu-memory-utilization=0.90
+  - --max-model-len=32768
+  - --reasoning-parser=openai_gptoss

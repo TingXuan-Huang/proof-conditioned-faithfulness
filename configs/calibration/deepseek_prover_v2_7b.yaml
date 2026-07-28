@@ -1,0 +1,26 @@
+key: deepseek_prover_v2_7b_calibration
+category: prover
+provider: vllm
+model_id: deepseek-ai/DeepSeek-Prover-V2-7B
+revision: a8d9e14432b2e8dd9df2a4d4e70f1ba9bc8d9b7b
+base_url: http://127.0.0.1:18103/v1
+api_key_env: null
+chat_template: deepseek_prover_v2_v1
+decoding:
+  temperature: 0.0
+  top_p: 1.0
+  max_tokens: 8192
+  seed_base: 30
+concurrency: 1
+pricing_usd_per_mtok:
+  input: 0
+  output: 0
+pipeline_commit: null
+context_window: 32768
+dtype: bfloat16
+quantization: null
+serving_args:
+  - --tensor-parallel-size=1
+  - --gpu-memory-utilization=0.90
+  - --max-model-len=32768
+  - --trust-remote-code

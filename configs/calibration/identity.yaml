@@ -1,0 +1,10 @@
+schema_version: "1.0"
+theorem_id: calibration-identity
+imports:
+  - Mathlib
+declaration_name: calibration_identity
+declaration: "theorem calibration_identity (n : Nat) : n + 0 = n"
+proof_a: "Use the standard Nat.add_zero theorem directly."
+proof_b: "Prove the result by induction on n and simplify each case."
+paraphrase_a: "Close the goal with the library lemma saying addition by zero is the identity."
+paraphrase_b: "Induct over the natural number, simplifying the base and successor cases."

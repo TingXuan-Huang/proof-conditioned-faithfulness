@@ -13,7 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
 from proof_faithfulness.ids import canonical_json
 from proof_faithfulness.models.base import ModelCapabilities
-from proof_faithfulness.schema import NonEmptyString
+from proof_faithfulness.schema import NonEmptyString, SamplingOption
 
 
 class ConfigModel(BaseModel):
@@ -27,6 +27,14 @@ class DecodingConfig(ConfigModel):
     top_p: float = Field(gt=0, le=1)
     max_tokens: int = Field(gt=0)
     seed_base: int
+    extra: tuple[SamplingOption, ...] = ()
+
+    @model_validator(mode="after")
+    def reject_duplicate_options(self) -> DecodingConfig:
+        names = tuple(option.name for option in self.extra)
+        if len(set(names)) != len(names):
+            raise ValueError("Decoding option names must be unique")
+        return self
 
 
 class PricingConfig(ConfigModel):

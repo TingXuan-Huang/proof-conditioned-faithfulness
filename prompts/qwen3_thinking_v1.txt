@@ -1,0 +1,1 @@
+Qwen3 official chat template with thinking enabled, applied by the pinned vLLM tokenizer.

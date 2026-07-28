@@ -1,0 +1,33 @@
+model:
+  key: proofbridge_calibration
+  category: pipeline
+  provider: proofbridge
+  model_id: Huawei-AI4Math/ProofBridge
+  revision: 465d2a03a2cfe839022d6c71b587544aae402d07
+  base_url: null
+  api_key_env: null
+  chat_template: proofbridge_pipeline_v1
+  decoding:
+    temperature: 0.0
+    top_p: 1.0
+    max_tokens: 4096
+    seed_base: 34000
+  concurrency: 1
+  pricing_usd_per_mtok:
+    input: 0
+    output: 0
+  pipeline_commit: 465d2a03a2cfe839022d6c71b587544aae402d07
+  context_window: 32768
+command:
+  - /mmfs1/gscratch/stf/thuang27/proof-conditioned-faithfulness/.venv/bin/python
+  - /mmfs1/gscratch/stf/thuang27/proof-conditioned-faithfulness/scripts/pipelines/proofbridge_probe.py
+  - --request
+  - "{request_path}"
+  - --response
+  - "{response_path}"
+workdir: /gscratch/scrubbed/thuang27/proof-faithfulness/pipelines/ProofBridge
+scratch_dir: /gscratch/scrubbed/thuang27/proof-faithfulness/tmp
+timeout_seconds: 60
+max_response_bytes: 1048576
+environment_names:
+  - PATH

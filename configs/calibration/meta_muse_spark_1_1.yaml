@@ -1,0 +1,22 @@
+key: meta_muse_spark_1_1_calibration
+category: frontier_api
+provider: openai_compat_api
+model_id: muse-spark-1.1
+revision: meta-model-api-2026-07-28
+base_url: https://api.meta.ai/v1
+api_key_env: META_MODEL_API_KEY
+chat_template: meta_muse_spark_v1
+decoding:
+  temperature: 0.2
+  top_p: 0.95
+  max_tokens: 4096
+  seed_base: 33000
+concurrency: 1
+pricing_usd_per_mtok:
+  input: 1.25
+  output: 4.25
+pipeline_commit: null
+context_window: 1000000
+dtype: null
+quantization: null
+serving_args: []

@@ -35,6 +35,7 @@ from proof_faithfulness.models.config import (
     ModelConfig,
     PricingConfig,
 )
+from proof_faithfulness.schema import SamplingOption
 
 PROJECT_ROOT = Path(__file__).parents[2]
 CONDITIONS = PROJECT_ROOT / "configs" / "experiment" / "conditions.yaml"
@@ -176,6 +177,31 @@ def test_plan_check_validates_the_same_cardinality() -> None:
         "proof_conditioned_model": 30,
         "theorem_only_baseline": 0,
     }
+
+
+def test_plan_binds_provider_specific_decoding_options() -> None:
+    model = _mock_model().model_copy(
+        update={
+            "mock_decoding": DecodingConfig(
+                temperature=0.6,
+                top_p=0.95,
+                max_tokens=8192,
+                seed_base=20260724,
+                extra=(SamplingOption(name="top_k", value=20),),
+            )
+        }
+    )
+    plan = build_generation_plan(
+        theorems=_theorems(count=1),
+        models=(model,),
+        matrix=load_condition_matrix(CONDITIONS),
+        tier=1,
+        prompt_repository=PromptRepository(PROMPTS),
+    )
+
+    assert plan.requests[0].model_input.request.sampling.extra == (
+        SamplingOption(name="top_k", value=20),
+    )
 
 
 def test_plan_check_validates_the_exact_pilot_manifest(tmp_path: Path) -> None:

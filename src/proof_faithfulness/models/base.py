@@ -9,7 +9,7 @@ from typing import Literal, Protocol, runtime_checkable
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from proof_faithfulness.ids import canonical_json
-from proof_faithfulness.schema import GenerationRequest, TokenUsage
+from proof_faithfulness.schema import GenerationRequest, SamplingOption, TokenUsage
 
 
 class AdapterError(RuntimeError):
@@ -174,13 +174,15 @@ def validate_sampling_recipe(
     top_p: float,
     max_tokens: int,
     seed_base: int,
+    extra: tuple[SamplingOption, ...] = (),
 ) -> None:
     """Require the request to use exactly the recipe pinned in model YAML."""
     sampling = model_input.request.sampling
     expected_seed = seed_base + model_input.request.sample_index
     actual = (sampling.temperature, sampling.top_p, sampling.max_tokens, sampling.seed)
     expected = (temperature, top_p, max_tokens, expected_seed)
-    if actual != expected or sampling.extra:
+    if actual != expected or sampling.extra != extra:
         raise AdapterConfigurationError(
-            f"Request sampling does not match pinned model recipe: expected={expected!r}"
+            "Request sampling does not match pinned model recipe: "
+            f"expected={expected!r}, extra={extra!r}"
         )

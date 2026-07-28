@@ -45,7 +45,7 @@ from proof_faithfulness.models.pipeline import (
     ProofBridgeAdapter,
     ProofFlowAdapter,
 )
-from proof_faithfulness.schema import GenerationRequest, TokenUsage
+from proof_faithfulness.schema import GenerationRequest, SamplingOption, TokenUsage
 
 PROJECT_ROOT = Path(__file__).parents[2]
 PIPELINE_FIXTURE = PROJECT_ROOT / "tests" / "fixtures" / "fake_prover_pipeline.py"
@@ -388,6 +388,39 @@ def test_openai_adapter_rejects_cardinality_and_transport_overrides(name: str) -
         adapter.generate(_input_for_model(config, extra=({"name": name, "value": 2},)))
 
 
+def test_openai_adapter_sends_pinned_provider_sampling_option() -> None:
+    base_config = _model_config()
+    config = base_config.model_copy(
+        update={
+            "decoding": base_config.decoding.model_copy(
+                update={"extra": (SamplingOption(name="top_k", value=20),)}
+            )
+        }
+    )
+    observed: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        observed.update(json.loads(request.content))
+        return httpx.Response(
+            200,
+            json={
+                "id": "local-extra",
+                "choices": [
+                    {"message": {"content": "by trivial"}, "finish_reason": "stop"}
+                ],
+                "usage": {"prompt_tokens": 10, "completion_tokens": 4},
+            },
+        )
+
+    adapter = OpenAICompatibleAdapter(config, transport=httpx.MockTransport(handler))
+    result = adapter.generate(
+        _input_for_model(config, extra=({"name": "top_k", "value": 20},))
+    )
+
+    assert result.text
+    assert observed["top_k"] == 20
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [("temperature", 0.3), ("top_p", 0.9), ("max_tokens", 64), ("seed", 8)],
@@ -675,6 +708,21 @@ def test_pipeline_timeout_terminates_descendants(tmp_path: Path) -> None:
         ProofFlowAdapter(config).generate(_input_for_pipeline(config))
     time.sleep(0.5)
     assert not marker.exists()
+
+
+def test_pipeline_nonzero_exit_preserves_bounded_diagnostics(tmp_path: Path) -> None:
+    script = "import sys;print('probe failed',file=sys.stderr);raise SystemExit(78)"
+    config = _pipeline_config(
+        tmp_path,
+        "proofbridge",
+        (sys.executable, "-c", script, "{request_path}", "{response_path}"),
+        max_response_bytes=1024,
+    )
+    with pytest.raises(AdapterResponseError, match="status 78") as caught:
+        ProofBridgeAdapter(config).generate(_input_for_pipeline(config))
+    assert caught.value.raw_response is not None
+    assert b"probe failed" in caught.value.raw_response
+    assert caught.value.raw_truncated is False
 
 
 def test_pipeline_success_terminates_descendants(tmp_path: Path) -> None:

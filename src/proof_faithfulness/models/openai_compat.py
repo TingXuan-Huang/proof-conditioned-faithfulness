@@ -153,6 +153,7 @@ class OpenAICompatibleAdapter:
             top_p=self._config.decoding.top_p,
             max_tokens=self._config.decoding.max_tokens,
             seed_base=self._config.decoding.seed_base,
+            extra=self._config.decoding.extra,
         )
         payload: dict[str, Any] = {
             "model": self._config.model_id,

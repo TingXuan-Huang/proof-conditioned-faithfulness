@@ -89,6 +89,7 @@ class ManifestMockAdapter:
             top_p=decoding.top_p,
             max_tokens=decoding.max_tokens,
             seed_base=decoding.seed_base,
+            extra=decoding.extra,
         )
         response = {
             "id": f"mock-{model_input.request.request_id[:16]}",
