@@ -136,6 +136,12 @@ class RuntimeMetadata(CalibrationModel):
     notes: tuple[str, ...] = ()
 
 
+_RUNTIME_EVIDENCE_NAMES = frozenset(
+    {"gpu-samples.csv", "model-info.json", "server.log", "server-argv.txt"}
+)
+_MAX_RUNTIME_EVIDENCE_BYTES = 64 * 1024 * 1024
+
+
 def load_calibration_fixture(path: Path) -> CalibrationFixture:
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
@@ -397,6 +403,49 @@ def attach_runtime_metadata(*, store: RunArtifactStore, metadata_path: Path) -> 
     metadata = RuntimeMetadata.model_validate_json(metadata_path.read_bytes())
     store.write_json("reports/runtime.json", metadata.model_dump(mode="json"))
     return metadata
+
+
+def attach_runtime_evidence(
+    *,
+    store: RunArtifactStore,
+    evidence_path: Path,
+    name: str,
+) -> str:
+    """Persist bounded, non-secret runtime evidence with a checksum sidecar."""
+    _require_calibration_namespace(store)
+    if name not in _RUNTIME_EVIDENCE_NAMES:
+        raise ValueError(f"Unsupported runtime evidence name: {name}")
+    if evidence_path.is_symlink() or not evidence_path.is_file():
+        raise ValueError("Runtime evidence must be a regular non-symlink file")
+    if evidence_path.stat().st_size > _MAX_RUNTIME_EVIDENCE_BYTES:
+        raise ValueError("Runtime evidence exceeds the 64 MiB calibration limit")
+    return store.write_bytes(f"reports/evidence/{name}", evidence_path.read_bytes())
+
+
+def vllm_server_argv(models_path: Path) -> tuple[str, ...]:
+    """Return the exact server arguments derived from one pinned local manifest."""
+    models = _load_calibration_models(models_path)
+    if len(models) != 1 or not isinstance(models[0].backend_config, ModelConfig):
+        raise ValueError("A vLLM server manifest must contain one model backend")
+    config = models[0].backend_config
+    if config.provider != "vllm" or config.base_url is None or config.dtype is None:
+        raise ValueError("A vLLM server manifest requires provider=vllm")
+    if config.base_url.port is None:
+        raise ValueError("A calibration vLLM base_url must pin an explicit port")
+    argv = [
+        "--model",
+        config.model_id,
+        "--revision",
+        config.require_revision(),
+        "--port",
+        str(config.base_url.port),
+        "--dtype",
+        config.dtype,
+    ]
+    if config.quantization is not None:
+        argv.extend(("--quantization", config.quantization))
+    argv.extend(config.serving_args)
+    return tuple(argv)
 
 
 def _require_calibration_namespace(store: RunArtifactStore) -> None:

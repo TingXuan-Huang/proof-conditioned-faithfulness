@@ -12,10 +12,12 @@ import typer
 from proof_faithfulness.artifacts import RunArtifactStore
 from proof_faithfulness.calibration import (
     assess_calibration,
+    attach_runtime_evidence,
     attach_runtime_metadata,
     build_calibration_request,
     load_calibration_fixture,
     run_calibration_generation,
+    vllm_server_argv,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -116,3 +118,34 @@ def attach_runtime_command(
     except (OSError, TypeError, ValueError) as error:
         raise typer.BadParameter(str(error)) from error
     typer.echo(json.dumps(metadata.model_dump(mode="json"), indent=2, sort_keys=True))
+
+
+@app.command("attach-evidence")
+def attach_evidence_command(
+    run_id: Annotated[str, typer.Option("--run-id")],
+    evidence_path: Annotated[Path, typer.Option("--evidence")],
+    name: Annotated[str, typer.Option("--name")],
+    outputs_root: Annotated[Path, typer.Option("--outputs-root")] = DEFAULT_OUTPUTS,
+) -> None:
+    """Attach a bounded runtime log or measurement file to a calibration run."""
+    try:
+        checksum = attach_runtime_evidence(
+            store=RunArtifactStore(outputs_root, run_id),
+            evidence_path=evidence_path,
+            name=name,
+        )
+    except (OSError, TypeError, ValueError) as error:
+        raise typer.BadParameter(str(error)) from error
+    typer.echo(checksum)
+
+
+@app.command("vllm-argv")
+def vllm_argv_command(
+    models_path: Annotated[Path, typer.Option("--models")],
+) -> None:
+    """Print one exact vLLM server argument per line for a SLURM launcher."""
+    try:
+        argv = vllm_server_argv(models_path)
+    except (OSError, TypeError, ValueError) as error:
+        raise typer.BadParameter(str(error)) from error
+    typer.echo("\n".join(argv))
