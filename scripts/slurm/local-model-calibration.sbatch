@@ -155,6 +155,24 @@ mapfile -t SERVER_ARGS < <(
   "${PYTHON}" -c "${CLI_ENTRY}" calibration vllm-argv --models "${MANIFEST}"
 )
 printf '%s\n' "${SERVER_ARGS[@]}" > "${RUNTIME_ROOT}/server-argv.txt"
+PORT=""
+EXPECTED_MODEL=""
+for ((index = 0; index < ${#SERVER_ARGS[@]}; index++)); do
+  case "${SERVER_ARGS[index]}" in
+    --model) EXPECTED_MODEL="${SERVER_ARGS[index + 1]}" ;;
+    --port) PORT="${SERVER_ARGS[index + 1]}" ;;
+  esac
+done
+if [[ -z "${PORT}" || -z "${EXPECTED_MODEL}" ]]; then
+  printf 'manifest-derived server arguments lack model or port\n' >&2
+  exit 1
+fi
+if "${PYTHON}" -c \
+    'import socket,sys; sock=socket.socket(); sock.settimeout(1); code=sock.connect_ex(("127.0.0.1", int(sys.argv[1]))); sock.close(); raise SystemExit(0 if code == 0 else 1)' \
+    "${PORT}"; then
+  printf 'refusing occupied vLLM port: %s\n' "${PORT}" >&2
+  exit 1
+fi
 : > "${RUNTIME_ROOT}/server.log"
 if [[ "${MODEL_KEY}" == "deepseek-prover-v2-7b" ]]; then
   readonly TOKENIZER_OVERLAY="/gscratch/scrubbed/thuang27/proof-faithfulness/huggingface/tokenizer-overlays/deepseek-prover-v2-7b/a8d9e14432b2e8dd9df2a4d4e70f1ba9bc8d9b7b-pretrained-fast"
@@ -211,29 +229,17 @@ apptainer exec --cleanenv \
   >> "${RUNTIME_ROOT}/server.log" 2>&1 &
 SERVER_PID="$!"
 
-PORT=""
-for ((index = 0; index < ${#SERVER_ARGS[@]}; index++)); do
-  if [[ "${SERVER_ARGS[index]}" == "--port" ]]; then
-    PORT="${SERVER_ARGS[index + 1]}"
-    break
-  fi
-done
-if [[ -z "${PORT}" ]]; then
-  printf 'manifest-derived server arguments have no port\n' >&2
-  exit 1
-fi
-
 READY=false
 for _ in $(seq 1 720); do
-  if curl --fail --silent --show-error \
-    "http://127.0.0.1:${PORT}/v1/models" \
-    > "${RUNTIME_ROOT}/model-info.json"; then
-    READY=true
-    break
-  fi
   if ! kill -0 "${SERVER_PID}" 2>/dev/null; then
     printf 'vLLM exited before readiness\n' >&2
     exit 1
+  fi
+  if curl --fail --silent --show-error \
+    "http://127.0.0.1:${PORT}/v1/models" \
+      > "${RUNTIME_ROOT}/model-info.json"; then
+    READY=true
+    break
   fi
   sleep 5
 done
@@ -241,6 +247,10 @@ if [[ "${READY}" != true ]]; then
   printf 'vLLM did not become ready within 3600 seconds\n' >&2
   exit 1
 fi
+kill -0 "${SERVER_PID}"
+"${PYTHON}" -c \
+  'import json,sys; body=json.load(open(sys.argv[1], encoding="utf-8")); ids=[item.get("id") for item in body.get("data", []) if isinstance(item, dict)]; assert sys.argv[2] in ids, (sys.argv[2], ids)' \
+  "${RUNTIME_ROOT}/model-info.json" "${EXPECTED_MODEL}"
 readonly LOAD_END="$(date +%s)"
 readonly LOAD_TIME="$((LOAD_END - LOAD_START))"
 

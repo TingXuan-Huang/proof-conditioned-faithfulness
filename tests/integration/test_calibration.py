@@ -72,6 +72,41 @@ def test_calibration_runs_cross_stage_and_resumes(tmp_path: Path) -> None:
     assert store.verified("reports/assessment.json")
 
 
+def test_calibration_reentry_accepts_an_already_terminal_response(tmp_path: Path) -> None:
+    models_path = tmp_path / "models.yaml"
+    _write_single_mock(models_path)
+    fixture = load_calibration_fixture(FIXTURE)
+    planned, model = build_calibration_request(
+        fixture=fixture,
+        models_path=models_path,
+        conditions_path=CONDITIONS,
+        prompts_root=PROMPTS,
+    )
+    store = RunArtifactStore(tmp_path / "calibration", "calibration-reentry")
+    first, first_resume = run_calibration_generation(
+        planned=planned,
+        model=model,
+        store=store,
+        approvals_root=tmp_path / "approvals",
+        approval_scope="calibration-testing",
+        harness_git_commit="a" * 40,
+    )
+    reentered, second_resume = run_calibration_generation(
+        planned=planned,
+        model=model,
+        store=store,
+        approvals_root=tmp_path / "approvals",
+        approval_scope="calibration-testing",
+        harness_git_commit="a" * 40,
+    )
+
+    assert (first.processed, first.skipped) == (1, 0)
+    assert (first_resume.processed, first_resume.skipped) == (0, 1)
+    assert (reentered.processed, reentered.skipped) == (0, 1)
+    assert (second_resume.processed, second_resume.skipped) == (0, 1)
+    assert store.verified("reports/resume.json")
+
+
 def test_calibration_rejects_experimental_namespace(tmp_path: Path) -> None:
     models_path = tmp_path / "models.yaml"
     _write_single_mock(models_path)

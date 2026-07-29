@@ -286,7 +286,9 @@ def run_calibration_generation(
         budget_gate=budget_gate,
         harness_git_commit=harness_git_commit,
     ).run()
-    if first.processed != 1 or second.processed != 0 or second.skipped != 1:
+    first_is_terminal = (first.processed, first.skipped) in {(1, 0), (0, 1)}
+    second_is_verified_noop = (second.processed, second.skipped) == (0, 1)
+    if not first_is_terminal or not second_is_verified_noop:
         raise RuntimeError("Calibration resume did not skip the verified terminal response")
     store.write_json(
         "reports/resume.json",

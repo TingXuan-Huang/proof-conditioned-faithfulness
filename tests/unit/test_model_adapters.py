@@ -694,6 +694,28 @@ def test_pipeline_requires_clean_checkout(tmp_path: Path) -> None:
         ProofBridgeAdapter(config).generate(_input_for_pipeline(config))
 
 
+def test_pipeline_git_status_timeout_is_normalized(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = _pipeline_config(
+        tmp_path,
+        "proofbridge",
+        (sys.executable, "-c", "pass", "{request_path}", "{response_path}"),
+    )
+    commit = config.model.pipeline_commit
+    assert commit is not None
+
+    def fake_run(command: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+        assert kwargs["timeout"] == 60
+        if command[:2] == ["git", "rev-parse"]:
+            return subprocess.CompletedProcess(command, 0, stdout=f"{commit}\n", stderr="")
+        raise subprocess.TimeoutExpired(command, kwargs["timeout"])
+
+    monkeypatch.setattr("proof_faithfulness.models.pipeline.subprocess.run", fake_run)
+    with pytest.raises(AdapterConfigurationError, match="Git status"):
+        ProofBridgeAdapter(config).generate(_input_for_pipeline(config))
+
+
 def test_pipeline_timeout_terminates_descendants(tmp_path: Path) -> None:
     marker = tmp_path / "descendant-survived"
     child = f"import pathlib,time;time.sleep(.4);pathlib.Path({str(marker)!r}).touch()"

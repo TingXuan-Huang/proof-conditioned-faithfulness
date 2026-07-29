@@ -29,6 +29,8 @@ from proof_faithfulness.models.config import (
 from proof_faithfulness.models.openai_compat import compute_usd_cost
 from proof_faithfulness.schema import TokenUsage
 
+PIPELINE_GIT_TIMEOUT_SECONDS = 60
+
 
 class PipelineResponse(BaseModel):
     """Strict response file emitted by a pipeline integration shim."""
@@ -213,7 +215,7 @@ class JsonSubprocessAdapter:
                 capture_output=True,
                 check=False,
                 text=True,
-                timeout=10,
+                timeout=PIPELINE_GIT_TIMEOUT_SECONDS,
             )
         except (OSError, subprocess.TimeoutExpired) as error:
             raise AdapterConfigurationError("Unable to inspect pipeline Git commit") from error
@@ -222,14 +224,17 @@ class JsonSubprocessAdapter:
             raise AdapterConfigurationError(
                 f"Pipeline checkout does not match pinned commit for {self._config.model.key}"
             )
-        status = subprocess.run(
-            ["git", "status", "--porcelain", "--untracked-files=all"],
-            cwd=self._config.workdir,
-            capture_output=True,
-            check=False,
-            text=True,
-            timeout=10,
-        )
+        try:
+            status = subprocess.run(
+                ["git", "status", "--porcelain", "--untracked-files=all"],
+                cwd=self._config.workdir,
+                capture_output=True,
+                check=False,
+                text=True,
+                timeout=PIPELINE_GIT_TIMEOUT_SECONDS,
+            )
+        except (OSError, subprocess.TimeoutExpired) as error:
+            raise AdapterConfigurationError("Unable to inspect pipeline Git status") from error
         if status.returncode != 0 or status.stdout:
             raise AdapterConfigurationError(
                 f"Pipeline checkout is not clean for {self._config.model.key}"
