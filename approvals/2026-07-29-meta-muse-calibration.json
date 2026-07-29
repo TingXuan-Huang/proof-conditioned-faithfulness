@@ -1,0 +1,10 @@
+{
+  "scope": "calibration-testing",
+  "run_ids": ["calibration-meta-muse-spark-approved-20260729"],
+  "requests_sha256": "3725257f3a9b960ce0c8e3ad918f89c2cf970f3802a39029b2ff2e6e27b7d74a",
+  "request_count": 1,
+  "max_usd": "5.50",
+  "approved_by": "Tingxuan Huang",
+  "date": "2026-07-29",
+  "note": "Human-authorized ceiling of $5.50 for one testing-only Meta Muse Spark calibration request; excluded from pilot, core, and reported scientific results."
+}
