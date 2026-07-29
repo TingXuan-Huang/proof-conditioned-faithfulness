@@ -94,10 +94,19 @@ export TMPDIR="${LOCAL_BASE}/tmp"
 export HF_HOME
 export HF_HUB_CACHE="${HF_HOME}/hub"
 export TRANSFORMERS_CACHE="${HF_HOME}/transformers"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export XDG_CACHE_HOME="${LOCAL_BASE}/cache"
+export FLASHINFER_WORKSPACE_DIR="${LOCAL_BASE}/flashinfer"
+export VLLM_CACHE_ROOT="${LOCAL_BASE}/vllm-cache"
+export VLLM_NO_USAGE_STATS=1
+export NO_PROXY="127.0.0.1,localhost"
+export no_proxy="${NO_PROXY}"
 
 install -d -m 700 \
   "${LOCAL_BASE}" "${EXTRACT_ROOT}" "${RUNTIME_ROOT}" "${TMPDIR}" \
-  "${UV_CACHE_DIR}" "${HF_HUB_CACHE}" "${TRANSFORMERS_CACHE}"
+  "${UV_CACHE_DIR}" "${HF_HUB_CACHE}" "${TRANSFORMERS_CACHE}" \
+  "${XDG_CACHE_HOME}" "${FLASHINFER_WORKSPACE_DIR}" "${VLLM_CACHE_ROOT}"
 
 read -r EXPECTED_SHA256 _ < "${ARCHIVE}.sha256"
 printf '%s  %s\n' "${EXPECTED_SHA256}" "${ARCHIVE}" | sha256sum -c -
@@ -182,12 +191,19 @@ printf 'timestamp,name,uuid,memory_total_mb,memory_used_mb\n' \
 MONITOR_PID="$!"
 
 readonly LOAD_START="$(date +%s)"
-apptainer exec \
+apptainer exec --cleanenv \
   --nv \
   --bind "${HF_HOME}:${HF_HOME}" \
+  --bind "${LOCAL_BASE}:${LOCAL_BASE}" \
   --env "HF_HOME=${HF_HOME}" \
   --env "HF_HUB_CACHE=${HF_HUB_CACHE}" \
   --env "TRANSFORMERS_CACHE=${TRANSFORMERS_CACHE}" \
+  --env "HF_HUB_OFFLINE=${HF_HUB_OFFLINE}" \
+  --env "TRANSFORMERS_OFFLINE=${TRANSFORMERS_OFFLINE}" \
+  --env "XDG_CACHE_HOME=${XDG_CACHE_HOME}" \
+  --env "FLASHINFER_WORKSPACE_DIR=${FLASHINFER_WORKSPACE_DIR}" \
+  --env "VLLM_CACHE_ROOT=${VLLM_CACHE_ROOT}" \
+  --env "VLLM_NO_USAGE_STATS=${VLLM_NO_USAGE_STATS}" \
   "${IMAGE}" \
   python -m vllm.entrypoints.openai.api_server \
   "${SERVER_ARGS[@]}" \
