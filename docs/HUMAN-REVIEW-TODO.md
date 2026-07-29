@@ -2,7 +2,7 @@
 
 **Owner:** Tingxuan Huang \
 **Prepared by:** coding agent, 2026-07-25 \
-**Last engineering update:** 2026-07-26
+**Last engineering update:** 2026-07-29
 
 This is the human-facing review and decision queue for the proof-conditioned
 faithfulness prototype. Every checkbox is human-owned and intentionally unchecked.
@@ -11,20 +11,34 @@ benchmark, scientific interpretation, model slate, spending, or publication clai
 
 ## Current state in one minute
 
-- Immutable job `37722531` passed `lake build`, 271 pytest tests, Ruff, Pyright, and
-  exact offline S4 planning on commit `a65e9d8`. S1-S5 are green on fixtures/mock
-  transport; no paid API request or model-weight download occurred.
+- Real-backend compatibility testing is complete. GPT-OSS passed on H200/MXFP4, Qwen
+  passed on the required H200/BF16, DeepSeek-Prover passed generation on L40/BF16, one
+  approved Meta request passed live transport, and both pipeline incompatibilities are
+  checksummed. Read `docs/REAL-BACKEND-COMPATIBILITY-REPORT.md` before choosing a slate.
+- Final offline job `37869456` passed a node-local Mathlib warm-up, 283 pytest tests,
+  Ruff, zero-error Pyright, and `lake build`. Seven focused paid-safety/resume tests and
+  all 114 authoritative calibration sidecars also passed verification.
+- The Meta request cost `$0.008082`, then immediate resume skipped it without another
+  request. Its output is calibration-only and cannot enter pilot/core results. No
+  GPT-5.6 Terra, pilot, or core request has run.
+- Qwen H200, DeepSeek, and Meta produced respectively `type_invalid`, `multiple_blocks`,
+  and `syntax_invalid` proof text. This is acceptable compatibility evidence: the
+  checker classified each outcome and correctly skipped dependent stages. GPT-OSS and
+  an independent Qwen A100 sample passed Lean/dependency/evaluation end to end.
+- ProofBridge's public release lacks runnable inference/checkpoint assets. ProofFlow
+  reached pinned Qwen generation, then failed in upstream `build_proof_graph`. Humans
+  must decide whether to patch, replace, or exclude the pipeline category.
+- A GPU-accounting bug is fixed in commit `15fe536`; audited correction records report
+  Qwen H200 peak 130,983 MiB and DeepSeek L40 peak 41,781 MiB. Original inaccurate
+  runtime artifacts remain preserved.
 - Trusted node-local job `37724510` accepted the exact `036-A` statement/body with only
   allowed axioms and persisted S3. Its provisional `automation_bypass` classification
   requires human interpretation. Nine other submitted routes have saved Lean errors;
   three contain `sorry`. Gate P, Gate S, and every candidate Status remain open.
-- A credential pasted into chat was not used, stored, or logged and must be
-  revoked/rotated. Exact official provider/model/billing details and a matching
-  machine-readable approval remain human inputs before one paid API smoke.
-- Current engineering commits through `a65e9d8` fix evaluation provenance,
-  theorem-only handling, trusted-check persistence, crash recovery, the 600/1,200-second
-  limits, the 8,192 MiB Lean boundary, and narrow-terminal CLI guidance. Deferred deep
-  reviews remain pending.
+- A Meta credential value was pasted into chat and later used only through the approved
+  interactive environment path. It was not found in tracked or calibration artifacts.
+  Unset it locally and revoke it in the Meta dashboard; use a fresh key for any later
+  separately approved request.
 - Klone full-Mathlib execution now requires a checksummed LZ4 snapshot extracted into
   private node-local /tmp. GPFS job 37717888 timed out with almost no CPU use. Local
   4 GiB job 37720527 exited 139, while unlimited 37720766 and bounded 8 GiB 37721113
@@ -32,17 +46,37 @@ benchmark, scientific interpretation, model slate, spending, or publication clai
 - The child remains bounded at 8,192 MiB and SLURM jobs must request at least 16 GiB.
   A resource signal is an operational outcome, not a proof failure. This evidence does
   not approve a human gate.
-- S1-S5 have green fixture/mock Exit criteria. No paid API request or model-weight
-  download has occurred.
+- S1-S5 remain green on fixture/mock Exit criteria. Deferred deep reviews remain open.
 - The proposed pilot-5 is 001/033/036/040/041. It is still draft; Gate P is open.
 - Ten submitted reference routes were compiled in extended offline SLURM job
   `37700033`. Only `036-A` compiles. Nine routes have saved Lean errors, and three of
   those also contain `sorry`. Gate S is open.
-- S4 has mock, API-compatible, local-model, and prover-pipeline interfaces plus paid
-  approval/budget guards. It has not run a real model.
+- The owner reports a second annotator is secured. Onboarding, independence/conflict
+  review, rubric training, and annotation calibration remain human-owned.
 - S5 can blind and import labels and compute agreement on fixtures. Humans have not
   frozen the rubric or produced real annotations.
 - Local checkpoint commits after `origin/main` are not pushed.
+
+## Immediate model-slate review
+
+- [ ] Read every row and evidence path in
+  `docs/REAL-BACKEND-COMPATIBILITY-REPORT.md`; confirm the measured model identity,
+  hardware, memory, latency, throughput, and cost are sufficient for the intended run.
+- [ ] Choose GPT-OSS and/or Qwen as the open-weight production model. Qwen has both H200
+  and A100 evidence; GPT-OSS requires H200-class capacity.
+- [ ] Decide whether DeepSeek's multiple-block output should be accepted via a
+  human-reviewed prompt/output-contract change, retained only as a fallback, or
+  replaced. Do not let the harness repair generated proof text silently.
+- [ ] Decide whether to patch/replace ProofBridge or ProofFlow, or explicitly freeze a
+  slate without a proof-conditioned pipeline and record the scientific consequence.
+- [ ] Confirm Meta remains testing-only and is excluded from every experimental
+  manifest. Decide separately whether/when GPT-5.6 Terra receives a future approved
+  smoke request.
+- [ ] Revoke the chat-exposed Meta key. In the current shell run
+  `unset META_MODEL_API_KEY`, then confirm
+  `test -z "${META_MODEL_API_KEY+x}" && echo cleared`.
+- [ ] After reviewing the above, record the human slate decision in the active plan.
+  Only the human owner may freeze the slate or close a readiness gate.
 
 ## Immediate manual reproduction
 
@@ -77,10 +111,10 @@ uv run python -c \
 lake --version
 ```
 
-- [ ] Independently rerun the full engineering gauntlet. Agent job `37722531` already
-  passed it on immutable commit `a65e9d8` with 271 tests, clean Ruff, zero-error
-  Pyright, and a green Lean build; this unchecked item is human reproduction, not
-  missing agent verification.
+- [ ] Independently rerun the full engineering gauntlet. Latest agent job `37869456`
+  passed the checksummed source overlay with 283 tests, clean Ruff, zero-error Pyright,
+  and a green Lean build; this unchecked item is human reproduction, not missing agent
+  verification.
 
 ```bash
 uv run pytest -q
@@ -89,7 +123,7 @@ uv run pyright
 lake build
 ```
 
-Expected current result: 271 tests and all four commands pass. Treat any failure as a
+Expected current result: 283 tests and all four commands pass. Treat any failure as a
 new blocker and record the exact command, commit, host, module state, exit code, and
 diagnostic.
 
@@ -288,12 +322,12 @@ code or running the affected stage.
   commit, toolchain, or exclusion change.
 - [ ] **S5 integration review:** Inspect 08ceba85, especially verified terminal Lean
   artifacts, theorem-only provenance, crash recovery, and rejection of unchecked text.
-- [ ] **API intake remains gated:** T016 agent processing and the engineering gauntlet
-  are complete. Revoke/rotate the credential exposed in chat; it was not used. Identify
-  the official provider/product, endpoint, auth variable, wire model ID, pricing/usage
-  schema, billing account/region, and retry contract. Deliver only the rotated value
-  through the private environment mechanism. A matching `approvals/` record remains
-  mandatory before one paid smoke request.
+- [ ] **Production API intake remains gated:** the approval-bound Meta testing request
+  is complete and cannot enter scientific data. Revoke the credential exposed in chat.
+  Before any GPT-5.6 Terra or other production-frontier request, identify and review the
+  official endpoint, auth variable, wire model ID, pricing/usage schema, billing
+  account/region, and retry contract. Deliver only a fresh value through the private
+  environment mechanism; an exact matching `approvals/` record remains mandatory.
 
 - [ ] **Timeout implementation review:** The owner decided on one fixed-source Mathlib
   warm-up per batch (1,200-second ceiling) and 600 seconds per fresh candidate after job

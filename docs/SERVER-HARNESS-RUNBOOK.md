@@ -14,10 +14,12 @@ for a stateless agent arriving with only a fresh clone.
     compute budget:   $250 in cluster credits (2026-07-24) — GPU jobs burn this;
                       keep dev on CPU/login nodes + mock adapters; GPUs only for
                       real batches, serve → run → shut down
-    secret delivery:  waiting on human (see §3); do not infer a mechanism
-    API budget:       $20 credit on the frontier provider (exact provider name to be
-                      confirmed by the user; enough for pilot + cheap-provider core;
-                      top-up decision deferred until post-pilot cost data)
+    secret delivery:  interactive environment injection was verified for the Meta
+                      test; a durable production mechanism remains waiting on human
+    API budget:       Meta's testing account reported starting credit and the one
+                      approved request settled at $0.008082 in the harness. Meta is
+                      excluded from scientific runs. OpenAI/Terra production billing,
+                      credit, and top-up limits remain waiting on human review.
     test cluster:     Klone (UW Hyak) — DEV/TEST host (user decision 2026-07-24,
                       superseding the earlier reserve-only policy). Split of duties:
                       - Klone: environment bring-up rehearsal, S1-S5 development and
@@ -45,6 +47,11 @@ for a stateless agent arriving with only a fresh clone.
     allocated GPUs:   gpu-l40 (8 total), gpu-l40s (10 total); both 48 GB GDDR6;
                       each physical node has 8 GPUs; checkpoint access may expose
                       idle GPUs outside the allocation but is preemptible
+    observed smoke:   checkpoint access provided NVIDIA H200 143,771 MiB and A100
+                      81,920 MiB devices for calibration. GPT-OSS 120B ran on H200;
+                      Qwen3-32B ran on H200 and A100; DeepSeek-Prover-V2-7B ran on
+                      L40. These observations establish test compatibility, not a
+                      guaranteed production allocation.
     QoS:              normal; checkpoint QoS ckpt, ckpt-gpu, ckpt-scav
     storage:          GPFS project path /gscratch/stf; 60 TiB / 60,000,000 files
                       group quota, 57,993 GB / 47,768,186 files used at the
@@ -95,6 +102,14 @@ for a stateless agent arriving with only a fresh clone.
                       scrubbed launcher-only directory and failed before candidate
                       execution. Leave ELAN_HOME unset to use the verified installed
                       toolchain; corrected job 37724510 passed.
+    backend image:    Apptainer image SHA-256
+                      bc40ebbf3c8d9ab67e29c72b6ce0500b5d313226891edd4ece4d92bd9c5e3ccd;
+                      vLLM 0.19.1. Pinned weight revisions and measured resource facts
+                      are in docs/REAL-BACKEND-COMPATIBILITY-REPORT.md.
+    GPU accounting:   parse `memory_used_mb` as an integer. Commit 15fe536 fixes an
+                      awk string-comparison bug; runs submitted before it have a
+                      checksummed `reports/runtime-correction.json` derived from their
+                      immutable GPU sample CSV.
 
 ### 1b. Tillicum facts (public policy discovery, 2026-07-25)
 
@@ -212,6 +227,22 @@ chmod 600); job scripts `source` it. Never `#SBATCH --export=ALL` from an intera
 shell with secrets loaded; use `--export=NONE` and source inside the script. Never echo
 env in logs (`env`, `printenv` are banned in job scripts).
 
+For an interactive one-request calibration, load the key silently, run the approved
+manifest, and clear the shell variable immediately afterward:
+
+```bash
+read -rsp "API key: " META_MODEL_API_KEY; printf '\n'
+export META_MODEL_API_KEY
+# Run only the request whose manifest hash is present in approvals/.
+unset META_MODEL_API_KEY
+test -z "${META_MODEL_API_KEY+x}" && echo "key cleared from this shell"
+```
+
+`unset` removes the value from the current shell and future child processes. It does not
+revoke a credential. Because a Meta key value was pasted into chat during bring-up, the
+owner must revoke/delete it in the Meta dashboard and create a fresh key only if a later
+approved request is needed. Never reproduce the pasted value in an incident record.
+
 ## 3b. Model weights — download, storage, serving, sampling
 
 The design lives in PLAN.md S4 (adapters, request math, decoding defaults); this
@@ -222,6 +253,12 @@ project/scratch storage and record the path in §1:
 
     export HF_HOME=/path/to/project/storage/hf     # in job scripts AND ~/.bashrc
     # Size planning (bf16): 7B ≈ 15 GB, 32B ≈ 65 GB, 72B ≈ 145 GB + vLLM overhead.
+
+The 2026-07-29 calibration cache is under
+`/gscratch/scrubbed/thuang27/proof-faithfulness/huggingface/`. It contains the exact
+GPT-OSS, Qwen, and DeepSeek revisions listed in the compatibility report. DeepSeek also
+uses the checksummed tokenizer overlay recorded in its runtime metadata. Scrubbed files
+are subject to the 21-day inactivity purge; reverify every snapshot before a later run.
 
 **Download (one-time per model, BEFORE any GPU job).** Downloads run on a node with
 outbound network (login/DTN if compute nodes are offline — §1 network check):

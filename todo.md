@@ -6,6 +6,12 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
 
 ## Open
 
+- [ ] T022 (P0) Human review and freeze of the real-backend model slate. Review
+      `docs/REAL-BACKEND-COMPATIBILITY-REPORT.md`; choose final `ready`/`fallback`
+      backends; decide whether DeepSeek's multi-block output needs a prompt/contract
+      change; and decide whether to replace, patch, or exclude ProofBridge/ProofFlow.
+      Compatibility testing is complete, but no model-slate, Gate A, pilot, or core
+      approval is implied. **Status:** pending human review.
 - [ ] T021 (P2) Complete the human manual review and decision checklist in
       `docs/HUMAN-REVIEW-TODO.md`. It covers interactive reproduction, trusted Lean
       checking, model/prover execution, paid API safeguards, blinding/annotation,
@@ -43,17 +49,19 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       finds), exclusion list 1-43 + NOTES-library-collapse-catalog.md. File keepers
       as 045+. Optional — do after (or during) the human review pass reveals which
       domains still need low-contamination fills.
-- [ ] T012 (P0) Frontier API key placement and approved smoke. T016 agent processing
-      and offline engineering integration are complete. A credential was pasted into
-      chat and was deliberately not used, stored, echoed, or committed; the owner must
-      revoke/rotate it. Before any request, humans must identify the exact official
-      provider/product, endpoint, authentication variable, wire model ID, pricing and
-      usage schema, billing account/region, and place a matching machine-readable
-      approval. Inject only the rotated value by the RUNBOOK §3 server secret path.
-      S4 transports and T011's permit/refusal tests are complete. No API request has run.
+- [ ] T012 (P0) Production frontier API credential and approval. One Meta Muse Spark
+      testing-only request has now run through the matching approval, persisted at
+      `$0.008082`, and resumed without a duplicate. It is not a frontier scientific
+      result. GPT-5.6 Terra received no request and still requires an independently
+      reviewed provider contract, rotated credential, manifest-bound approval, and
+      explicit human authorization. A credential value was pasted into chat; revoke it
+      in the provider dashboard and use only a fresh environment-injected value later.
+      S4 preflight and T011 refusal/spend controls are complete. **Status:** pending.
 - [ ] T007 (P2) Recruit a second qualified annotator (or explicitly preregister a
-      single-annotator + LLM-judge fallback). Blocks the annotation phase.
-      See analysis-decisions-pending.md §(f).
+      single-annotator + LLM-judge fallback). The owner reports that a second annotator
+      is secured; onboarding, conflict/independence confirmation, rubric training, and
+      calibration remain human-owned before annotation. See
+      analysis-decisions-pending.md §(f). **Status:** pending human confirmation.
 - [ ] T015 (P3) Resolve the repository's 100-column Ruff setting versus the coding
       standard's mandatory 80-column rule in a dedicated formatting-policy change; do
       not mix a whole-tree reformat into behavioral pipeline work.
@@ -140,17 +148,17 @@ The actionable review order and exact manual commands are maintained in
    the T017 code review follows the freeze and checks only that the implementation
    measures the chosen definition correctly.
 4. **Annotation staffing (T007):** recruit the second qualified annotator or explicitly
-   preregister the documented fallback. Humans freeze the rubric, label proofs, and
-   adjudicate disagreements. The T019 code review follows representative pilot exports
-   and verifies blinding, provenance, and statistics rather than replacing annotation.
+   preregister the documented fallback. The owner reports the second annotator is
+   secured; humans still confirm onboarding/independence, freeze the rubric, label
+   proofs, and adjudicate disagreements. T019 follows representative pilot exports.
 5. **Human disposition of generated Lean references (T016):** agent compilation,
    trusted `036-A` S2/S3, and the banned-lemma report are complete. Humans retain
    approval and Status ownership, must interpret `036-A`, and must decide whether Gate S
    needs repaired or replacement references for the nine failed routes.
-6. **Rotate/configure the frontier credential and run one approved API smoke (T012):**
-   identify the official provider contract, rotate the chat-exposed credential, deliver
-   it only through the server secret path, and place a matching machine-readable
-   approval before the harness may issue one paid request.
+6. **Rotate/configure the later frontier credential (T012):** the Meta testing-only
+   smoke is complete. Revoke the chat-exposed key. GPT-5.6 Terra remains uncalled and
+   needs its own provider-contract review, fresh environment-delivered key, exact
+   manifest approval, and explicit human authorization before any later request.
 
 ## Done
 

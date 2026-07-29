@@ -10,6 +10,51 @@ just the code.
 
 ---
 
+### 2026-07-29 - Complete real-backend compatibility checkpoint
+
+- **Scope:** Tested the pinned real-backend slate through the calibration namespace.
+  GPT-OSS 120B passed on H200/MXFP4; Qwen3-32B passed on the required H200/BF16;
+  corrected-tokenizer DeepSeek-Prover-V2-7B passed on L40/BF16; one approval-bound Meta
+  Muse Spark request passed live transport; ProofBridge and ProofFlow failures were
+  persisted rather than omitted. Full measurements and evidence paths are in
+  `docs/REAL-BACKEND-COMPATIBILITY-REPORT.md`.
+- **Cross-stage evidence:** Raw and extracted response persistence, request/model
+  identity, usage/timing/cost, SHA-256 sidecars, immediate no-op resume, trusted Lean
+  classification, conditional dependency probing, and evaluation preparation all ran.
+  GPT-OSS and an independent Qwen A100 response passed every downstream stage. Qwen
+  H200, DeepSeek, and Meta recorded `type_invalid`, `multiple_blocks`, and
+  `syntax_invalid`; these are model-output outcomes, not engineering blockers.
+- **Meta spend:** Run `calibration-meta-muse-spark-approved-20260729` processed exactly
+  one request and resumed with `processed=0, skipped=1`. It persisted the provider
+  request ID, 111 input and 1,869 output tokens, 19.379-second latency, and
+  harness-settled cost `$0.008082`. The output is calibration-only.
+- **Final verification:** Node-local job `37869456` passed Mathlib warm-up, 283 pytest
+  tests in 51.69 seconds, Ruff, zero-error Pyright, and `lake build`. Seven focused
+  approval, missing-secret, ambiguous-retry, kill/resume, and refusal tests passed in
+  0.44 seconds. An audit verified 114 sidecars across eight authoritative runs with
+  zero mismatches and found no exact secret-prefix match in tracked or calibration
+  files.
+- **Blocking fix:** Commit `15fe536` changes GPU-memory peak parsing from string to
+  numeric comparison. Checksummed correction records show Qwen H200 at 130,983 MiB and
+  DeepSeek L40 at 41,781 MiB while preserving the original inaccurate runtime values.
+  A two-row regression returned 130,983 and launcher shell syntax passed.
+
+#### Error and limitation ledger
+
+- Fixed: SquashFS destination pre-creation, generic Python absence under `--cleanenv`,
+  cold Mathlib staging, Pyright `libatomic`, paid-secret preflight ordering, DeepSeek
+  tokenizer dispatch, and GPU peak numeric parsing.
+- Operational only: direct `uv run pytest` could not write the sandboxed scrubbed uv
+  cache; direct `.venv` testing then stalled at shared-GPFS Lean access. The verified
+  node-local job replaced both attempts; neither is counted as a code failure.
+- Accepted backend limitations: ProofBridge lacks runnable public inference; ProofFlow
+  raises upstream `build_proof_graph`; DeepSeek emits multiple blocks; Meta emitted an
+  extra `:=`; Qwen H200 omitted an argument. Raw evidence is retained for each outcome.
+- Human work remains open: final model slate, pipeline replacement/patch decision,
+  pilot/reference approval, analysis/estimand freeze, and all candidate/gate Status
+  fields. The second annotator is reported secured, but onboarding and rubric review
+  remain human-owned. No pilot, core, Terra request, or GitHub synchronization occurred.
+
 ### 2026-07-26 - Reach the pre-human prototype checkpoint
 
 - **Scope:** Final immutable integration gauntlet, trusted `036-A` reference check,

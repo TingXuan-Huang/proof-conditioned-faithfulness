@@ -44,6 +44,22 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
 
 ## Progress
 
+- [ ] 2026-07-29: Real-backend compatibility execution is complete and awaits human
+      model-slate review. GPT-OSS 120B passed on H200 with native MXFP4; Qwen3-32B
+      passed generation/artifacts/resume on the required H200; corrected-tokenizer
+      DeepSeek-Prover-V2-7B passed the same path on L40; one approved Meta Muse Spark
+      request passed transport/artifacts/resume and settled at `$0.008082`; ProofBridge
+      and ProofFlow incompatibilities are checksummed and documented. Model-output
+      failures (`type_invalid`, `multiple_blocks`, and `syntax_invalid`) were retained
+      honestly and do not invalidate backend integration. No pilot, core, or Terra run
+      was launched, and Gate P/S/C/A remain open. See
+      `docs/REAL-BACKEND-COMPATIBILITY-REPORT.md`.
+- [x] 2026-07-29: Final offline gauntlet job `37869456` completed with exit `0:0`:
+      trusted Mathlib warm-up passed in 424.831 seconds, pytest passed 283 tests in
+      51.69 seconds, Ruff passed, Pyright reported zero errors/warnings, and
+      `lake build` passed with the existing unused-variable warning. Seven focused paid
+      refusal/preflight/resume tests passed in 0.44 seconds, and 114 calibration
+      checksum sidecars verified with zero failures.
 - 2026-07-26: The immutable node-local gauntlet is green on commit `a65e9d8`.
   Snapshot build job `37722524` completed in 5:37; gauntlet job `37722531`
   completed in 4:01 with exit `0:0`. The fixed-source warm-up succeeded in
@@ -133,11 +149,13 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
 - [ ] 2026-07-25: waiting on human: S3 workshop metric choice. Explicit-step
       utilization remains the provisional implementation; full graph extraction is not
       frozen.
-- [ ] 2026-07-25: waiting on human: T012 frontier key delivery and a machine-readable
-      `approvals/` permit before any paid Gate-A smoke request. Secret delivery and
-      remaining billing/account details are also undiscovered T008 inputs.
-- [ ] 2026-07-25: waiting on human: T006 analysis freeze after the pilot and T007 second
-      annotator. Neither is bypassed or marked approved by this engineering checkpoint.
+- [ ] 2026-07-29: waiting on human: the Meta testing-only API smoke is complete through
+      its exact approval. T012 remains open for a later GPT-5.6 Terra credential,
+      provider-contract review, and separate manifest-bound approval; no Terra request
+      has run. Revoke the Meta key value that was exposed in chat.
+- [ ] 2026-07-29: waiting on human: T006 analysis freeze remains post-pilot. The owner
+      reports a second annotator is secured, but T007 onboarding, independence/conflict
+      confirmation, and rubric calibration remain open. Neither gate is bypassed.
 - [ ] 2026-07-25: Repository publication is blocked on this server's existing GitHub
       credentials. `git push origin main` failed with `could not read Username` for the
       HTTPS remote; `gh` is unavailable and the previously tested SSH path was denied.
@@ -227,7 +245,8 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
       transport (Part 2.3). This is an engineering checkpoint only: Gate C remains open
       until ordered Gates P and S supply approved pilot inputs and every component runs
       against them; Gate A and all real-model execution also remain open.
-- [ ] YYYY-MM-DD: Model slate smoke-tested and frozen (needs API keys on server).
+- [ ] YYYY-MM-DD: Real-backend compatibility is tested; human model-slate review and
+      freeze remain open (T022). Meta is testing-only; Terra remains uncalled.
 - [ ] YYYY-MM-DD: Pilot smoke slice (1-2 theorems) run and human-reviewed.
 - [ ] YYYY-MM-DD: Full pilot (5 pairs, Tier 1) run; human checkpoint; Tier 2 run.
 - [ ] YYYY-MM-DD: Pilot gate passed; analysis decisions frozen (T006 closes).
@@ -241,6 +260,20 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
 
 ## Surprises & Discoveries
 
+- 2026-07-29: The local-model launcher computed peak GPU memory with an awk string
+  comparison. Transitional values made `791` sort above `130983` for Qwen H200 and
+  `457` above `41781` for DeepSeek L40. Commit `15fe536` forces numeric comparison;
+  checksummed correction records preserve both original and corrected values. This was
+  a measurement-integrity bug, not a model or inference failure.
+- 2026-07-29: ProofFlow successfully loaded pinned Qwen, received a nonempty model
+  response, and then failed inside upstream `build_proof_graph` on the calibration
+  fixture. ProofBridge's pinned public release exposes neither a documented inference
+  entrypoint nor a trained checkpoint. Both failures have raw checksummed diagnostics;
+  neither system was silently omitted.
+- 2026-07-29: A missing Meta key was originally discovered after a transport-attempt
+  record began. Commit `d2c2e13` moves secret/identity/sampling preflight ahead of the
+  attempt boundary while retaining approval as the first gate. The later approved live
+  request completed once, and immediate resume skipped it without billing again.
 - 2026-07-26: The cold Mathlib failure had two separate operational causes. Shared GPFS
   imposed severe metadata/read waiting: job 37717888 used 3.597 CPU seconds over 20:15
   and timed out its 1,200-second warm-up even though Mathlib.olean exists. After
@@ -307,6 +340,26 @@ preregistered precision rule toward 50; first-attempt track primary with repair 
 (≤2 rounds) separate; immutable raw outputs, transport retries only, never best-of;
 sorry/admit/custom axioms rejected, standard Mathlib classical axioms disclosed;
 Python 3.12 + uv + Pydantic + Typer + pytest + Ruff + Pyright + Lean 4 + Mathlib.
+
+New decisions (2026-07-29, real-backend compatibility checkpoint):
+
+- Meta Muse Spark 1.1 is testing-only. Its calibration output cannot enter pilot,
+  core, annotation, analysis, or reported scientific results. GPT-5.6 Terra remains a
+  planned frontier candidate but received no request in this checkpoint.
+- A real-backend compatibility pass requires nonempty generation, verbatim/checksummed
+  persistence, trusted Lean classification, conditional dependency/evaluation
+  execution, and verified no-op resume. It does not require the sampled proof to
+  compile; invalid proof text remains a model outcome and is never repaired.
+- GPT-OSS, Qwen, and DeepSeek identities are pinned to the revisions recorded in the
+  compatibility report. These are tested candidates, not a human-frozen final slate.
+  Human review decides `ready`/`fallback` selection before production.
+- ProofBridge is infeasible from its pinned public release, and the ProofFlow attempt is
+  incompatible with the current minimal fixture. Replacing, patching, or excluding a
+  proof-conditioned pipeline is a human slate decision rather than an unrecorded
+  engineering substitution.
+- Model weights and calibration artifacts remain outside experimental namespaces. Stop
+  after the readiness report; do not launch pilot, core, or Terra production until the
+  owner explicitly reviews the report and authorizes the next stage.
 
 New decisions (2026-07-25, prototype engineering checkpoint):
 
@@ -766,9 +819,10 @@ PROGRESS.md and the coding-standard §8 process-reflection report (proposal-only
 | ID | Item | Owner | Blocks |
 |---|---|---|---|
 | T006 | Freeze analysis decisions (a)-(e) + dispute rule (g) post-pilot | Tingxuan | Core run (2.6) |
-| T007 | Second annotator (or preregistered fallback) | Tingxuan | Annotation (3.1) |
-| T008 | Tillicum account credit/expiry, direct egress, secret delivery/provider | Tingxuan | Real-model smoke/freeze (2.4) |
-| T012 | Frontier key delivered outside repo plus human-owned approval record | Tingxuan | Gate A |
+| T007 | Secured annotator onboarding/independence/rubric calibration | Tingxuan | Annotation (3.1) |
+| T008 | Tillicum account credit/expiry, direct egress, and production secret delivery | Tingxuan | Production run |
+| T012 | Fresh Terra key plus separate human-owned manifest approval | Tingxuan | Future frontier Gate A |
+| T022 | Review compatibility report and freeze final model/pipeline slate | Tingxuan | Pilot/core production |
 | T016 | Generated Lean proofs for proposed 001/033/036/040/041 pilot set | Tingxuan + agent report | Gate S |
 | — | Candidate pool review (001-044) | Tingxuan | Gate P / pilot curation |
 | — | VERICODEGEN fallback go/no-go | Tingxuan | ~Sept 5 |
