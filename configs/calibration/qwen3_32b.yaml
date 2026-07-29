@@ -29,4 +29,3 @@ serving_args:
   - --gpu-memory-utilization=0.90
   - --max-model-len=32768
   - --reasoning-parser=qwen3
-  - --enable-reasoning
