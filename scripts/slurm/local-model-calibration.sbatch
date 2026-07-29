@@ -281,7 +281,7 @@ readonly GPU_TOTAL="$(
   nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | head -1
 )"
 readonly GPU_PEAK="$(
-  awk -F, 'NR > 1 {gsub(/ /, "", $5); if ($5 > max) max=$5} END {print max+0}' \
+  awk -F, 'NR > 1 {value=$5+0; if (value > max) max=value} END {print max+0}' \
     "${RUNTIME_ROOT}/gpu-samples.csv"
 )"
 readonly HOSTNAME_VALUE="$(hostname)"
