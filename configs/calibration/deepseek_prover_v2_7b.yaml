@@ -24,3 +24,5 @@ serving_args:
   - --gpu-memory-utilization=0.90
   - --max-model-len=32768
   - --trust-remote-code
+  - --tokenizer
+  - /gscratch/scrubbed/thuang27/proof-faithfulness/huggingface/tokenizer-overlays/deepseek-prover-v2-7b/a8d9e14432b2e8dd9df2a4d4e70f1ba9bc8d9b7b-pretrained-fast

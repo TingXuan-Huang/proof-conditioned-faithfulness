@@ -47,6 +47,7 @@ readonly RUNTIME_ROOT="${LOCAL_BASE}/runtime"
 SERVER_PID=""
 MONITOR_PID=""
 PROJECT_ROOT=""
+TOKENIZER_NOTE=""
 
 attach_evidence() {
   local name="$1"
@@ -145,6 +146,24 @@ mapfile -t SERVER_ARGS < <(
   "${PYTHON}" -c "${CLI_ENTRY}" calibration vllm-argv --models "${MANIFEST}"
 )
 printf '%s\n' "${SERVER_ARGS[@]}" > "${RUNTIME_ROOT}/server-argv.txt"
+: > "${RUNTIME_ROOT}/server.log"
+if [[ "${MODEL_KEY}" == "deepseek-prover-v2-7b" ]]; then
+  readonly TOKENIZER_OVERLAY="/gscratch/scrubbed/thuang27/proof-faithfulness/huggingface/tokenizer-overlays/deepseek-prover-v2-7b/a8d9e14432b2e8dd9df2a4d4e70f1ba9bc8d9b7b-pretrained-fast"
+  printf '%s  %s\n' \
+    "091b9dadb9845f0e8386c38bdb87e98db8adc7b0aacf36cb9257c00d0a668714" \
+    "${TOKENIZER_OVERLAY}/tokenizer.json" \
+    "4053f0035c788f77b81d98d470f51abf51ee41f8c608679d4d1e74b02e328859" \
+    "${TOKENIZER_OVERLAY}/tokenizer_config.json" \
+    "da65b8f28475bf69826889a601848c5c2cb37f5847f239301aa3a82948c23445" \
+    "${TOKENIZER_OVERLAY}/provenance.json" \
+    | sha256sum -c - >> "${RUNTIME_ROOT}/server.log"
+  apptainer exec --cleanenv \
+    --bind "${HF_HOME}:${HF_HOME}" \
+    "${IMAGE}" python -c \
+    'import json,sys; from transformers import AutoTokenizer; t=AutoTokenizer.from_pretrained(sys.argv[1], local_files_only=True, trust_remote_code=True); sample=" a\nb"; ids=t.encode(sample, add_special_tokens=False); decoded=t.decode(ids, skip_special_tokens=False, clean_up_tokenization_spaces=False); chat=t.apply_chat_template([{"role":"user","content":"line one\nline two"}], tokenize=False, add_generation_prompt=True); assert t.is_fast and decoded == sample and "line one\nline two" in chat; print(json.dumps({"tokenizer_class": type(t).__name__, "is_fast": t.is_fast, "roundtrip_ids": ids, "roundtrip_decoded": decoded, "chat_template_ok": True}))' \
+    "${TOKENIZER_OVERLAY}" >> "${RUNTIME_ROOT}/server.log"
+  TOKENIZER_NOTE="DeepSeek tokenizer overlay 4053f0035c788f77b81d98d470f51abf51ee41f8c608679d4d1e74b02e328859 corrects Transformers-5 class dispatch; source model revision remains pinned."
+fi
 readonly SERVER_VERSION="$(
   apptainer exec "${IMAGE}" python -c 'import vllm; print(vllm.__version__)'
 )"
@@ -173,7 +192,7 @@ apptainer exec \
   python -m vllm.entrypoints.openai.api_server \
   "${SERVER_ARGS[@]}" \
   --download-dir "${HF_HUB_CACHE}" \
-  > "${RUNTIME_ROOT}/server.log" 2>&1 &
+  >> "${RUNTIME_ROOT}/server.log" 2>&1 &
 SERVER_PID="$!"
 
 PORT=""
@@ -252,7 +271,10 @@ metadata = RuntimeMetadata(
     load_time_s=float(${LOAD_TIME@Q}),
     serving_configuration=${ARGV_JSON},
     container_sha256=${CONTAINER_SHA256@Q},
-    notes=("Calibration-only; not pilot or experimental data.",),
+    notes=tuple(filter(None, (
+        "Calibration-only; not pilot or experimental data.",
+        ${TOKENIZER_NOTE@Q},
+    ))),
 )
 Path(${RUNTIME_ROOT@Q}, "runtime.json").write_text(
     metadata.model_dump_json(indent=2) + "\n", encoding="utf-8"
