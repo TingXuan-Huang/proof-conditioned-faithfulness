@@ -65,6 +65,8 @@ RunStatus = Literal[
     "cancelled",
 ]
 
+GIT_IDENTITY_TIMEOUT_SECONDS = 60
+
 
 class HarnessError(RuntimeError):
     """Base class for generation harness failures."""
@@ -1239,11 +1241,11 @@ def _current_git_identity() -> tuple[str, bytes]:
         commit = subprocess.check_output(
             ["git", "-C", str(project_root), "rev-parse", "HEAD"],
             text=True,
-            timeout=10,
+            timeout=GIT_IDENTITY_TIMEOUT_SECONDS,
         ).strip()
         status = subprocess.check_output(
             ["git", "-C", str(project_root), "status", "--porcelain=v1"],
-            timeout=10,
+            timeout=GIT_IDENTITY_TIMEOUT_SECONDS,
         )
     except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
         raise HarnessError("Unable to resolve the harness Git identity") from error
