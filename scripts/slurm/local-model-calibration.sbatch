@@ -259,6 +259,16 @@ readonly LOAD_TIME="$((LOAD_END - LOAD_START))"
   --models "${MANIFEST}" \
   --run-id "${RUN_ID}" \
   --outputs-root "${SHARED_OUTPUTS}"
+"${PYTHON}" - <<'PY'
+from pathlib import Path
+
+from proof_faithfulness.lean.checker import warm_mathlib_cache
+
+result = warm_mathlib_cache(project_root=Path.cwd())
+print(result)
+if not result.success:
+    raise RuntimeError(f"trusted Mathlib warm-up failed: {result}")
+PY
 "${PYTHON}" -c "${CLI_ENTRY}" calibration assess \
   --models "${MANIFEST}" \
   --run-id "${RUN_ID}" \
