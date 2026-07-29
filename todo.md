@@ -12,12 +12,18 @@ Every entry gets an ID (T001, T002, ...) so in-code TODOs can reference it.
       change; and decide whether to replace, patch, or exclude ProofBridge/ProofFlow.
       Compatibility testing is complete, but no model-slate, Gate A, pilot, or core
       approval is implied. **Status:** pending human review.
+- [ ] T023 (P1) Human incident and publication review. Read
+      `docs/CLUSTER-EXPERIMENT-INCIDENTS.md`, validate the failure classifications and
+      accepted operational limits, confirm the exposed Meta credential is revoked,
+      inspect all local commits/diffs after an authenticated `git fetch`, rerun the
+      secret scan, and push only from the owner's authenticated session. This review
+      does not close any scientific or readiness gate. **Status:** pending.
 - [ ] T021 (P2) Complete the human manual review and decision checklist in
       `docs/HUMAN-REVIEW-TODO.md`. It covers interactive reproduction, trusted Lean
-      checking, model/prover execution, paid API safeguards, blinding/annotation,
-      observed errors, and every architecture/scientific question that must be human
-      gated. All checkboxes are human-owned; agents may add evidence but never mark
-      approval.
+      checking, model/prover execution, paid API safeguards, incident acceptance,
+      authenticated publication, blinding/annotation, observed errors, and every
+      architecture/scientific question that must be human gated. All checkboxes are
+      human-owned; agents may add evidence but never mark approval.
 
 - [ ] T001 (P2) Fill out `coding-standard/PROJECT_ARTIFACTS.md` — declare this project's
       load-bearing artifacts (human-owned; candidates per HUMAN_PLAN: the benchmark

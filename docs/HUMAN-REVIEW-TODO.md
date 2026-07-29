@@ -78,6 +78,47 @@ benchmark, scientific interpretation, model slate, spending, or publication clai
 - [ ] After reviewing the above, record the human slate decision in the active plan.
   Only the human owner may freeze the slate or close a readiness gate.
 
+## Incident and publication review
+
+- [ ] Read `docs/CLUSTER-EXPERIMENT-INCIDENTS.md`. Confirm that infrastructure,
+  harness, backend-compatibility, model-output, and human-gate failures are separated
+  correctly and that no failed job is being interpreted as a mathematical result.
+- [ ] Review the node-local LZ4 SquashFS policy, 8,192-MiB Lean child limit, at-least
+  16-GiB SLURM request, 1,200-second warm-up, and 600-second candidate limit against
+  jobs `37717888`, `37720527`, `37720766`, `37721113`, and `37869456`.
+- [ ] Review the preserved correction records for Qwen H200 and DeepSeek L40 GPU peaks.
+  Confirm reports use 130,983 MiB and 41,781 MiB rather than the original incorrect
+  string-comparison values.
+- [ ] Review every paid-request incident: missing approval, dirty worktree refusal,
+  missing-secret preflight, one successful Meta request, exact cost settlement, no-op
+  resume, secret scan, and required key revocation.
+- [ ] Confirm the accepted limitations are acceptable for a prototype: ProofBridge is
+  not runnable from its public release; ProofFlow fails in upstream proof-graph
+  construction; DeepSeek emits multiple blocks; Qwen/Meta calibration proofs were
+  invalid but honestly classified.
+- [ ] Before publishing, fetch with your normal authenticated setup and inspect the
+  complete local series. Do not assume the locally cached `origin/main` is current.
+
+```bash
+cd /mmfs1/gscratch/stf/thuang27/proof-conditioned-faithfulness
+git status --short
+git fetch origin
+git rev-list --left-right --count origin/main...HEAD
+git log --oneline origin/main..HEAD
+git diff --stat origin/main...HEAD
+git diff --check origin/main...HEAD
+git grep -nP '(?<![A-Z])LLM_[A-Za-z0-9_-]{10,}|sk-[A-Za-z0-9_-]{20,}' -- . || true
+```
+
+- [ ] Confirm the secret scan returns no credential value, the worktree is clean, and
+  the fetched remote is not ahead before running your authenticated push.
+
+```bash
+git push origin main
+```
+
+Publishing commits does not approve Gate P/S/C/A, the model slate, or a production run.
+
 ## Immediate manual reproduction
 
 Run this on Klone in an interactive CPU allocation. Use normal `cpu-g2` when the

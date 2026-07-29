@@ -4,8 +4,10 @@ This is the control-plane companion to docs/plans/active/PLAN.md (which says WHA
 build and in what order; this file says HOW to operate it: setup, jobs, run states,
 locks, budgets, logs, recovery). The SLURM host facts discovered under T008 are recorded
 in §1; only Tillicum account-specific allocation/billing, direct compute-node egress,
-secret delivery, and the exact frontier provider remain open. Everything here is written
-for a stateless agent arriving with only a fresh clone.
+production secret delivery, and the final human-frozen frontier contract remain open.
+Consult `docs/CLUSTER-EXPERIMENT-INCIDENTS.md` before changing launchers or repeating a
+failed job. Everything here is written for a stateless agent arriving with only a fresh
+clone.
 
 ## 1. Server facts (fill in at environment discovery, PLAN.md 2.1)
 

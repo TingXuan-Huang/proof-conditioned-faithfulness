@@ -10,6 +10,24 @@ just the code.
 
 ---
 
+### 2026-07-29 - Consolidate incident handoff and local publication checkpoint
+
+- **Scope:** Added `docs/CLUSTER-EXPERIMENT-INCIDENTS.md` as the durable operational
+  history for Klone/Tillicum work. It separates infrastructure failures, harness bugs,
+  backend incompatibilities, invalid generated proofs, and human decisions.
+- **Coverage:** Recorded bootstrap/TLS and compiler-runtime issues; cold Mathlib and
+  GPFS stalls; memory-bound evidence; every node-local staging failure; scheduler
+  association pressure; Git cleanliness/provenance and publication failures; vLLM,
+  container, tokenizer, assessment, paid-secret, and GPU-metric bugs; ProofBridge and
+  ProofFlow incompatibilities; raw-evidence locations; fixes; recurrence prevention;
+  and the final known-good recovery checklist.
+- **Human handoff:** Expanded `docs/HUMAN-REVIEW-TODO.md` with incident acceptance and
+  authenticated publication checks. Added T023 so incident review remains explicitly
+  pending rather than being inferred from a successful prototype smoke.
+- **Repository state before this entry:** `main` was 32 commits ahead of the locally
+  known `origin/main` and zero behind at `f44813d`. No fetch/push or credential/remote
+  change was performed; the human must fetch and re-evaluate divergence before pushing.
+
 ### 2026-07-29 - Complete real-backend compatibility checkpoint
 
 - **Scope:** Tested the pinned real-backend slate through the calibration namespace.

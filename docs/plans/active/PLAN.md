@@ -44,6 +44,12 @@ https://vericodegen.github.io/) — fallback go/no-go decision by ~September 5.
 
 ## Progress
 
+- [x] 2026-07-29: Consolidated the complete server/cluster incident history in
+      `docs/CLUSTER-EXPERIMENT-INCIDENTS.md` and added the human incident/publication
+      review as T023. The record covers bootstrap, GPFS, Lean resource, staging,
+      scheduler, Git, model-serving, tokenizer, API, metric-integrity, and external
+      pipeline failures with fixes and prevention. This documentation checkpoint does
+      not approve any gate or production run.
 - [ ] 2026-07-29: Real-backend compatibility execution is complete and awaits human
       model-slate review. GPT-OSS 120B passed on H200 with native MXFP4; Qwen3-32B
       passed generation/artifacts/resume on the required H200; corrected-tokenizer
