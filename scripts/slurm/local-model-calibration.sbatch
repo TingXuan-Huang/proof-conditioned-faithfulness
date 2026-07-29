@@ -186,13 +186,14 @@ if [[ "${MODEL_KEY}" == "deepseek-prover-v2-7b" ]]; then
     | sha256sum -c - >> "${RUNTIME_ROOT}/server.log"
   apptainer exec --cleanenv \
     --bind "${HF_HOME}:${HF_HOME}" \
-    "${IMAGE}" python -c \
+    "${IMAGE}" /usr/bin/python3.12 -c \
     'import json,sys; from transformers import AutoTokenizer; t=AutoTokenizer.from_pretrained(sys.argv[1], local_files_only=True, trust_remote_code=True); sample=" a\nb"; ids=t.encode(sample, add_special_tokens=False); decoded=t.decode(ids, skip_special_tokens=False, clean_up_tokenization_spaces=False); chat=t.apply_chat_template([{"role":"user","content":"line one\nline two"}], tokenize=False, add_generation_prompt=True); assert t.is_fast and decoded == sample and "line one\nline two" in chat; print(json.dumps({"tokenizer_class": type(t).__name__, "is_fast": t.is_fast, "roundtrip_ids": ids, "roundtrip_decoded": decoded, "chat_template_ok": True}))' \
     "${TOKENIZER_OVERLAY}" >> "${RUNTIME_ROOT}/server.log"
   TOKENIZER_NOTE="DeepSeek tokenizer overlay 4053f0035c788f77b81d98d470f51abf51ee41f8c608679d4d1e74b02e328859 corrects Transformers-5 class dispatch; source model revision remains pinned."
 fi
 readonly SERVER_VERSION="$(
-  apptainer exec "${IMAGE}" python -c 'import vllm; print(vllm.__version__)'
+  apptainer exec "${IMAGE}" /usr/bin/python3.12 -c \
+    'import vllm; print(vllm.__version__)'
 )"
 readonly CONTAINER_SHA256="$(sha256sum "${IMAGE}" | cut -d' ' -f1)"
 
@@ -223,7 +224,7 @@ apptainer exec --cleanenv \
   --env "VLLM_CACHE_ROOT=${VLLM_CACHE_ROOT}" \
   --env "VLLM_NO_USAGE_STATS=${VLLM_NO_USAGE_STATS}" \
   "${IMAGE}" \
-  python -m vllm.entrypoints.openai.api_server \
+  /usr/bin/python3.12 -m vllm.entrypoints.openai.api_server \
   "${SERVER_ARGS[@]}" \
   --download-dir "${HF_HUB_CACHE}" \
   >> "${RUNTIME_ROOT}/server.log" 2>&1 &
