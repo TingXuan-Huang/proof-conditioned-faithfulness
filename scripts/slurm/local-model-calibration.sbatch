@@ -104,7 +104,7 @@ export NO_PROXY="127.0.0.1,localhost"
 export no_proxy="${NO_PROXY}"
 
 install -d -m 700 \
-  "${LOCAL_BASE}" "${EXTRACT_ROOT}" "${RUNTIME_ROOT}" "${TMPDIR}" \
+  "${LOCAL_BASE}" "${RUNTIME_ROOT}" "${TMPDIR}" \
   "${UV_CACHE_DIR}" "${HF_HUB_CACHE}" "${TRANSFORMERS_CACHE}" \
   "${XDG_CACHE_HOME}" "${FLASHINFER_WORKSPACE_DIR}" "${VLLM_CACHE_ROOT}"
 
