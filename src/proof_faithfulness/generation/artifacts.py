@@ -121,6 +121,7 @@ def write_generation_response(
     response = GenerationResponse(
         schema_version="1.0",
         request_id=request.request_id,
+        provider_request_id=result.provider_request_id,
         model_key=request.model_key,
         revision=request.model_revision,
         raw=raw,

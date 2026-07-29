@@ -337,6 +337,7 @@ class GenerationResponse(ContractModel):
 
     schema_version: SchemaVersion
     request_id: Hash
+    provider_request_id: NonEmptyString | None = None
     model_key: NonEmptyString
     revision: NonEmptyString
     raw: str

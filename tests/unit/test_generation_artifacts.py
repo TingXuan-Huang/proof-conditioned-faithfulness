@@ -89,6 +89,7 @@ def test_response_writer_emits_exact_contract_and_sha_sidecar(tmp_path: Path) ->
     assert set(payload) == {
         "schema_version",
         "request_id",
+        "provider_request_id",
         "model_key",
         "revision",
         "raw",
@@ -102,6 +103,7 @@ def test_response_writer_emits_exact_contract_and_sha_sidecar(tmp_path: Path) ->
         "harness_git_commit",
     }
     assert json.loads(payload["raw"])["id"].startswith("mock-")
+    assert payload["provider_request_id"] == result.provider_request_id
     assert payload["raw"] == result.raw_response.decode("utf-8")
     assert payload["latency_s"] == 1.25
     assert store.verified(relative)

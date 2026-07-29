@@ -311,7 +311,12 @@ def test_mock_run_writes_complete_directory_and_rerun_is_verified_noop(
     assert store.verified("state.json")
     assert store.verified("requests.jsonl")
     assert (store.path / "events.jsonl").is_file()
-    assert len(list((store.path / "responses").glob("*/response.json"))) == 3
+    response_paths = list((store.path / "responses").glob("*/response.json"))
+    assert len(response_paths) == 3
+    assert all(
+        json.loads(path.read_text(encoding="utf-8"))["provider_request_id"].startswith("mock-")
+        for path in response_paths
+    )
 
 
 def test_resume_refuses_to_reissue_after_a_corrupt_success(tmp_path: Path) -> None:

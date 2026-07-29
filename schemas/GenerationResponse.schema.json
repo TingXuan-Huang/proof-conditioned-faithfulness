@@ -58,6 +58,19 @@
       "title": "Model Key",
       "type": "string"
     },
+    "provider_request_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Provider Request Id"
+    },
     "raw": {
       "title": "Raw",
       "type": "string"

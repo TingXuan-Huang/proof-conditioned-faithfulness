@@ -46,6 +46,21 @@ def _generation_response() -> dict[str, object]:
 def test_generation_response_accepts_consistent_result() -> None:
     response = GenerationResponse.model_validate(_generation_response())
     assert response.text == "by trivial"
+    assert response.provider_request_id is None
+
+
+def test_generation_response_preserves_provider_request_id() -> None:
+    payload = _generation_response()
+    payload["provider_request_id"] = "provider-response-123"
+    response = GenerationResponse.model_validate(payload)
+    assert response.provider_request_id == "provider-response-123"
+
+
+def test_generation_response_rejects_blank_provider_request_id() -> None:
+    payload = _generation_response()
+    payload["provider_request_id"] = "  "
+    with pytest.raises(ValidationError):
+        GenerationResponse.model_validate(payload)
 
 
 def test_generation_response_rejects_reverse_time_order() -> None:
