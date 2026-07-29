@@ -50,7 +50,11 @@ from proof_faithfulness.models import (
     ModelCapabilities,
     ModelInput,
 )
-from proof_faithfulness.models.base import AdapterResponseError, AdapterTransportError
+from proof_faithfulness.models.base import (
+    AdapterResponseError,
+    AdapterTransportError,
+    MissingSecretError,
+)
 from proof_faithfulness.models.config import (
     DecodingConfig,
     MockAdapterConfig,
@@ -127,6 +131,19 @@ class PaidFixtureAdapter:
             usd_cost=Decimal("0.1"),
             finish_reason="stop",
         )
+
+
+class PreflightPaidFixtureAdapter(PaidFixtureAdapter):
+    def __init__(self, model: PlanningModel) -> None:
+        super().__init__(model)
+        self.secret_available = False
+        self.preflight_calls = 0
+
+    def preflight(self, model_input: ModelInput) -> None:
+        del model_input
+        self.preflight_calls += 1
+        if not self.secret_available:
+            raise MissingSecretError("fixture secret is unavailable")
 
 
 class BlockingSecondAdapter(CountingAdapter):
@@ -432,6 +449,46 @@ def test_paid_run_resumes_after_approval_is_added(tmp_path: Path) -> None:
     result = harness.run()
     assert result.state == "complete"
     assert len(adapter.request_ids) == 1
+
+
+def test_paid_preflight_failure_resumes_without_ambiguous_attempt(
+    tmp_path: Path,
+) -> None:
+    run_id = "paid-preflight"
+    requests, model = _fixture_requests(count=1, paid=True)
+    adapter = PreflightPaidFixtureAdapter(model)
+    store = RunArtifactStore(tmp_path / "outputs", run_id)
+    _write_approval(
+        tmp_path,
+        store=store,
+        requests=requests,
+        max_usd=Decimal(1),
+    )
+    harness = GenerationHarness(
+        store=store,
+        requests=requests,
+        adapters={model.key: adapter},
+        budget_gate=_budget_gate(tmp_path, store),
+        harness_git_commit="a" * 40,
+    )
+
+    with pytest.raises(MissingSecretError, match="unavailable"):
+        harness.run()
+    request_id = requests[0].model_input.request.request_id
+    attempts = store.path / "responses" / request_id / "transport-attempts.json"
+    assert not attempts.exists()
+    budget = json.loads((store.path / "budget.json").read_text(encoding="utf-8"))
+    assert len(budget["entries"]) == 1
+    assert budget["entries"][0]["spent_usd"] is None
+    assert adapter.request_ids == []
+
+    adapter.secret_available = True
+    result = harness.run()
+    assert result.state == "complete"
+    assert adapter.request_ids == [request_id]
+    settled = json.loads((store.path / "budget.json").read_text(encoding="utf-8"))
+    assert len(settled["entries"]) == 1
+    assert settled["entries"][0]["spent_usd"] == "0.1"
 
 
 def test_ambiguous_paid_transport_failure_refuses_duplicate_attempt(tmp_path: Path) -> None:

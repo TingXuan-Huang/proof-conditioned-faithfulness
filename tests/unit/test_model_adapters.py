@@ -33,6 +33,7 @@ from proof_faithfulness.models.base import (
     AdapterConfigurationError,
     AdapterResponseError,
     AdapterTransportError,
+    MissingSecretError,
 )
 from proof_faithfulness.models.openai_compat import (
     OpenAICompatibleAdapter,
@@ -518,6 +519,26 @@ def test_frontier_paid_entrypoint_requires_a_configured_verifier(
 
     with pytest.raises(PaidRequestBlockedError, match="permit verifier"):
         adapter.generate_paid(model_input, _paid_permit(model_input.request.request_id))
+
+
+def test_frontier_preflight_rejects_missing_secret_without_transport(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("TEST_PROVIDER_KEY", raising=False)
+    config = _model_config(
+        category="frontier_api",
+        provider="openai_compat_api",
+        base_url="https://example.test/v1",
+        api_key_env="TEST_PROVIDER_KEY",
+    )
+    model_input = _input_for_model(config)
+    adapter = OpenAICompatibleAdapter(
+        config,
+        transport=httpx.MockTransport(lambda _: pytest.fail("transport must not run")),
+    )
+
+    with pytest.raises(MissingSecretError, match="TEST_PROVIDER_KEY"):
+        adapter.preflight(model_input)
 
 
 def test_frontier_paid_entrypoint_revalidates_before_transport(

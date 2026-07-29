@@ -124,12 +124,8 @@ class OpenAICompatibleAdapter:
             idempotency_key=model_input.request.request_id,
         )
 
-    def _generate(
-        self,
-        model_input: ModelInput,
-        *,
-        idempotency_key: str | None,
-    ) -> AdapterResult:
+    def preflight(self, model_input: ModelInput) -> None:
+        """Validate request identity, sampling, endpoint, and credentials without I/O."""
         validate_request_identity(
             model_input,
             adapter_name=self.name,
@@ -140,8 +136,7 @@ class OpenAICompatibleAdapter:
             backend_config_hash=compute_adapter_config_hash(self._config),
             capabilities=self.capabilities,
         )
-        request = model_input.request
-        extra = {option.name: option.value for option in request.sampling.extra}
+        extra = {option.name: option.value for option in model_input.request.sampling.extra}
         conflicts = set(extra) & _RESERVED_SAMPLING_KEYS
         if conflicts:
             raise AdapterResponseError(
@@ -155,6 +150,23 @@ class OpenAICompatibleAdapter:
             seed_base=self._config.decoding.seed_base,
             extra=self._config.decoding.extra,
         )
+        self._endpoint()
+        if self._config.api_key_env is not None and not os.environ.get(
+            self._config.api_key_env
+        ):
+            raise MissingSecretError(
+                f"Required environment variable is unset: {self._config.api_key_env}"
+            )
+
+    def _generate(
+        self,
+        model_input: ModelInput,
+        *,
+        idempotency_key: str | None,
+    ) -> AdapterResult:
+        self.preflight(model_input)
+        request = model_input.request
+        extra = {option.name: option.value for option in request.sampling.extra}
         payload: dict[str, Any] = {
             "model": self._config.model_id,
             "messages": [message.model_dump(mode="json") for message in model_input.messages],

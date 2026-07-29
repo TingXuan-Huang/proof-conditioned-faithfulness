@@ -46,7 +46,11 @@ from proof_faithfulness.generation.planning import (
 )
 from proof_faithfulness.generation.scheduler import slurm_job_is_active
 from proof_faithfulness.models import AdapterError, AdapterResult, ModelAdapter, ModelInput
-from proof_faithfulness.models.base import AdapterResponseError, AdapterTransportError
+from proof_faithfulness.models.base import (
+    AdapterResponseError,
+    AdapterTransportError,
+    MissingSecretError,
+)
 from proof_faithfulness.schema import (
     GenerationResponse,
     GitCommit,
@@ -241,6 +245,13 @@ class PaidModelAdapter(Protocol):
         model_input: ModelInput,
         permit: PaidRequestPermit,
     ) -> AdapterResult: ...
+
+
+@runtime_checkable
+class PreflightModelAdapter(Protocol):
+    """Adapter with a side-effect-free validation step before transport."""
+
+    def preflight(self, model_input: ModelInput) -> None: ...
 
 
 class EventLog:
@@ -906,6 +917,7 @@ class GenerationHarness:
         while True:
             if self._stop_requested.is_set():
                 raise _GracefulStop(retries)
+            self._preflight_adapter(item, adapter)
             if paid_adapter is not None:
                 if paid_permit is None:
                     raise AdapterPermitError("Paid generation lost its budget permit")
@@ -921,6 +933,17 @@ class GenerationHarness:
                     result = local_adapter.generate(item.model_input)
                 else:
                     raise AdapterPermitError("No validated model adapter is available")
+            except MissingSecretError as error:
+                self._finish_transport_attempt(
+                    ledger,
+                    outcome="transport_error",
+                    retry_safe=True,
+                    detail=(
+                        "Credential disappeared after preflight; no transport was attempted: "
+                        f"{type(error).__name__}"
+                    ),
+                )
+                raise
             except AdapterResponseError as error:
                 self._retain_response_failure(
                     item=item,
@@ -995,6 +1018,14 @@ class GenerationHarness:
                 )
                 raise error
             return result, retries, ledger
+
+    @staticmethod
+    def _preflight_adapter(
+        item: PlannedGeneration,
+        adapter: ModelAdapter | PaidModelAdapter,
+    ) -> None:
+        if isinstance(adapter, PreflightModelAdapter):
+            adapter.preflight(item.model_input)
 
     def _retry_decision(
         self,
