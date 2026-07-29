@@ -10,6 +10,26 @@ just the code.
 
 ---
 
+### 2026-07-29 - Replace stale README with a Hyak operator guide
+
+- **Scope:** Rewrote the root `README.md` to reflect the completed S1-S5 and
+  real-backend calibration checkpoint and to teach a human operator how to reproduce
+  the workflow on UW Hyak.
+- **Coverage:** Added clean-clone/frozen-environment setup, interactive CPU allocation,
+  offline gauntlet, Lean warm-up, request planning, immutable snapshot construction,
+  H200/A100/L40 calibration submission, SLURM monitoring, artifact inspection,
+  approval-bound API execution, secret cleanup, failure classification, and the stop
+  boundary before pilot/core.
+- **Paid-run safety:** The API walkthrough uses a separate no-network planning run,
+  binds a human approval to the deterministic request hash and final run ID, requires
+  the approval to be committed, and verifies a clean worktree before loading a fresh
+  secret. It does not reuse the historical Meta approval or authorize a new request.
+- **Validation:** `git diff --check` passed; all 28 fenced Bash examples passed
+  `bash -n`; all 9 local Markdown links resolved; and the tracked-file secret-pattern
+  scan found 0 matching files. The full code gauntlet was not repeated because this
+  checkpoint changes documentation only; the latest recorded code result remains 283
+  passing tests plus Ruff, Pyright, and `lake build`.
+
 ### 2026-07-29 - Consolidate incident handoff and local publication checkpoint
 
 - **Scope:** Added `docs/CLUSTER-EXPERIMENT-INCIDENTS.md` as the durable operational

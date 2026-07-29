@@ -121,6 +121,10 @@ Publishing commits does not approve Gate P/S/C/A, the model slate, or a producti
 
 ## Immediate manual reproduction
 
+Use the root `README.md` as the primary copy-paste Hyak operating guide. This section is
+the independent human confirmation checklist; when commands diverge, stop and reconcile
+the README with `docs/SERVER-HARNESS-RUNBOOK.md` before running either version.
+
 Run this on Klone in an interactive CPU allocation. Use normal `cpu-g2` when the
 allocation is available; `ckpt-g2` is acceptable for development checks but can be
 preempted. Never use a preemptible job for a paid API call.
